@@ -31,7 +31,7 @@ export const AuthGuard: React.FC<{ children: React.ReactNode }> = ({ children })
 
     if (!isAuthenticated && !isPublicRoute) {
       router.replace('/login');
-    } else if (isAuthenticated && (pathname === '/' || pathname === '/login')) {
+    } else if (isAuthenticated && pathname === '/login') {
       router.replace('/dashboard');
     }
   }, [isAuthenticated, isLoading, pathname, router]);

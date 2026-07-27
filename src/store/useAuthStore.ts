@@ -35,6 +35,21 @@ interface AuthState {
   hasPermission: (permission: string) => boolean;
 }
 
+const getInitialUser = (): UserProfile | null => {
+  if (typeof window === 'undefined') return null;
+  try {
+    const raw = localStorage.getItem('masters_expo_user');
+    return raw ? JSON.parse(raw) : null;
+  } catch (e) {
+    return null;
+  }
+};
+
+const getInitialToken = (): string | null => {
+  if (typeof window === 'undefined') return null;
+  return localStorage.getItem('masters_expo_token') || null;
+};
+
 const getSavedAccounts = (): SavedAccount[] => {
   if (typeof window === 'undefined') return [];
   try {
@@ -53,7 +68,6 @@ const getSavedAccounts = (): SavedAccount[] => {
 
 const setSavedAccounts = (accounts: SavedAccount[]) => {
   if (typeof window !== 'undefined') {
-    // Deduplicate before saving
     const uniqueMap = new Map<string, SavedAccount>();
     accounts.forEach((acc) => {
       const key = (acc.user.email || acc.user.id || (acc.user as any)._id || '').toLowerCase();
@@ -64,12 +78,15 @@ const setSavedAccounts = (accounts: SavedAccount[]) => {
   }
 };
 
+const initialUser = getInitialUser();
+const initialToken = getInitialToken();
+
 export const useAuthStore = create<AuthState>((set, get) => ({
-  user: null,
-  token: null,
+  user: initialUser,
+  token: initialToken,
   accounts: getSavedAccounts(),
-  isAuthenticated: false,
-  isLoading: true,
+  isAuthenticated: !!initialUser,
+  isLoading: false,
 
   login: (user, token) => {
     if (typeof window !== 'undefined') {
@@ -79,7 +96,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       localStorage.setItem('masters_expo_user', JSON.stringify(user));
     }
 
-    // Update saved accounts list with deduplication
     const currentAccounts = getSavedAccounts();
     const userEmail = (user.email || '').toLowerCase();
     const filtered = currentAccounts.filter(
@@ -113,9 +129,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     const currentUser = get().user;
     const activeId = currentUser ? currentUser.id || (currentUser as any)._id : null;
 
-    if (activeId === userId) {
+    if (activeId === userId || (currentUser && currentUser.email.toLowerCase() === userId.toLowerCase())) {
       if (updated.length > 0) {
-        // Switch to next available account
         const next = updated[0];
         if (typeof window !== 'undefined') {
           localStorage.setItem('masters_expo_token', next.token);
@@ -134,7 +149,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
           // Fallback
         }
       } else {
-        // Log out completely
         await get().logoutAll();
       }
     } else {
@@ -166,7 +180,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         const user = res.data.data;
         const token = localStorage.getItem('masters_expo_token') || 'cookie_session';
 
-        // Keep accounts updated with deduplication
         const currentAccounts = getSavedAccounts();
         const userEmail = (user.email || '').toLowerCase();
         const filtered = currentAccounts.filter(
@@ -175,11 +188,25 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         const updated = [...filtered, { user, token }];
         setSavedAccounts(updated);
 
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('masters_expo_user', JSON.stringify(user));
+        }
+
         set({ user, token, accounts: updated, isAuthenticated: true, isLoading: false });
         return true;
       }
     } catch (error) {
-      // Invalid session
+      // Handle 401 Unauthorized
+      if ((error as any)?.response?.status === 401) {
+        const token = localStorage.getItem('masters_expo_token');
+        // If there's no saved local token, clear session
+        if (!token) {
+          if (typeof window !== 'undefined') {
+            localStorage.removeItem('masters_expo_user');
+          }
+          set({ user: null, token: null, isAuthenticated: false, isLoading: false });
+        }
+      }
     }
 
     set({ isLoading: false });
@@ -187,7 +214,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   },
 
   switchAccount: async (userId: string) => {
-    // 1. Instant local switch from saved accounts
     const saved = get().accounts.find(
       (acc) =>
         (acc.user.id || (acc.user as any)._id) === userId ||
@@ -198,10 +224,9 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         localStorage.setItem('masters_expo_token', saved.token);
         localStorage.setItem('masters_expo_user', JSON.stringify(saved.user));
       }
-      set({ user: saved.user, token: saved.token, isAuthenticated: true });
+      set({ user: saved.user, token: saved.token, isAuthenticated: true, isLoading: false });
     }
 
-    // 2. Server side session sync
     try {
       const res = await api.post('/auth/switch-user', { userId });
       if (res.data.success) {
@@ -216,7 +241,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   hasPermission: (permission: string) => {
     const user = get().user;
     if (!user) return false;
-    if (user.permissions.includes('*')) return true;
-    return user.permissions.includes(permission);
+    if (user.permissions && user.permissions.includes('*')) return true;
+    return user.permissions ? user.permissions.includes(permission) : false;
   },
 }));

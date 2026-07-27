@@ -13,7 +13,7 @@ export const api = axios.create({
 api.interceptors.request.use((config) => {
   if (typeof window !== 'undefined') {
     const token = localStorage.getItem('masters_expo_token');
-    if (token) {
+    if (token && token !== 'cookie_session' && token !== 'null' && token !== 'undefined') {
       config.headers.Authorization = `Bearer ${token}`;
     }
   }
@@ -24,11 +24,10 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response && error.response.status === 401 && typeof window !== 'undefined') {
-      // Clear project-specific session data
+      // Clear invalid session token
       localStorage.removeItem('masters_expo_token');
-      localStorage.removeItem('masters_expo_user');
 
-      // Redirect to login page if unauthenticated
+      // Only redirect to login if currently on a protected route
       if (window.location.pathname !== '/login') {
         window.location.href = '/login';
       }
