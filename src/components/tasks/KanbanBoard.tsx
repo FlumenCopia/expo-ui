@@ -225,8 +225,9 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
         </select>
       </div>
 
-      {/* KANBAN BOARD */}
-      <div className="kb">
+      {/* KANBAN BOARD WRAPPER */}
+      <div className="kb-wrap">
+        <div className="kb">
         {STATUSES.map((s) => {
           const colTasks = filteredTasks.filter((t) => t.status === s.id);
           const isOver = dragOverCol === s.id;
@@ -409,6 +410,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
             </div>
           );
         })}
+      </div>
       </div>
     </div>
   );
