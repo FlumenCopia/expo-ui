@@ -21,13 +21,19 @@ interface RoleFormModalProps {
   onDelete?: () => void;
 }
 
-interface PermissionItem {
-  _id: string;
-  name: string;
-  code: string;
-  module: string;
-  description: string;
-}
+const SYSTEM_PAGE_ROWS = [
+  { title: 'Command Center', icon: '☀️', key: 'dashboard' },
+  { title: 'Task Board', icon: '📋', key: 'tasks' },
+  { title: 'Timeline & Phases', icon: '⏱️', key: 'timeline' },
+  { title: 'Contract Scope', icon: '📦', key: 'deliverables' },
+  { title: 'Approvals Queue', icon: '✅', key: 'approvals' },
+  { title: 'Team Capacity', icon: '👥', key: 'team' },
+  { title: 'KPI Tracker', icon: '🎯', key: 'kpi' },
+  { title: 'Ad Spend & Budget', icon: '💰', key: 'budget' },
+  { title: 'Notifications', icon: '🔔', key: 'notifications' },
+  { title: 'Settings & Access', icon: '⚙️', key: 'settings' },
+  { title: 'Page Management', icon: '📄', key: 'admin' },
+];
 
 export const RoleFormModal: React.FC<RoleFormModalProps> = ({
   initialRole,
@@ -57,14 +63,21 @@ export const RoleFormModal: React.FC<RoleFormModalProps> = ({
       setName('');
       setCode('');
       setDescription('');
-      setSelectedPerms(['view_all']);
+      setSelectedPerms([
+        'page.dashboard.view',
+        'page.tasks.view',
+        'page.timeline.view',
+        'page.deliverables.view',
+      ]);
     }
   }, [initialRole, isOpen]);
 
   if (!isOpen) return null;
 
+  const isWildcard = selectedPerms.includes('*');
+
   const togglePermission = (permCode: string) => {
-    if (selectedPerms.includes('*')) return;
+    if (isWildcard) return;
     if (selectedPerms.includes(permCode)) {
       setSelectedPerms(selectedPerms.filter((p) => p !== permCode));
     } else {
@@ -72,14 +85,26 @@ export const RoleFormModal: React.FC<RoleFormModalProps> = ({
     }
   };
 
-  const handleToggleModule = (modulePerms: PermissionItem[]) => {
-    const codes = modulePerms.map((p) => p.code);
-    const allSelected = codes.every((c) => selectedPerms.includes(c));
+  const handleToggleColumn = (action: 'view' | 'create' | 'edit' | 'delete') => {
+    const colCodes = SYSTEM_PAGE_ROWS.map((p) => `page.${p.key}.${action}`);
+    const allChecked = colCodes.every((c) => selectedPerms.includes(c));
 
-    if (allSelected) {
-      setSelectedPerms(selectedPerms.filter((c) => !codes.includes(c)));
+    if (allChecked) {
+      setSelectedPerms(selectedPerms.filter((c) => !colCodes.includes(c)));
     } else {
-      const merged = Array.from(new Set([...selectedPerms, ...codes]));
+      const merged = Array.from(new Set([...selectedPerms, ...colCodes]));
+      setSelectedPerms(merged);
+    }
+  };
+
+  const handleToggleRow = (pageKey: string) => {
+    const rowCodes = ['view', 'create', 'edit', 'delete'].map((act) => `page.${pageKey}.${act}`);
+    const allChecked = rowCodes.every((c) => selectedPerms.includes(c));
+
+    if (allChecked) {
+      setSelectedPerms(selectedPerms.filter((c) => !rowCodes.includes(c)));
+    } else {
+      const merged = Array.from(new Set([...selectedPerms, ...rowCodes]));
       setSelectedPerms(merged);
     }
   };
@@ -102,18 +127,6 @@ export const RoleFormModal: React.FC<RoleFormModalProps> = ({
     onClose();
   };
 
-  // Group permissions by module
-  const groupedPerms: Record<string, PermissionItem[]> = allPermissions.reduce(
-    (acc: any, perm: PermissionItem) => {
-      acc[perm.module] = acc[perm.module] || [];
-      acc[perm.module].push(perm);
-      return acc;
-    },
-    {}
-  );
-
-  const isWildcard = selectedPerms.includes('*');
-
   return (
     <div
       className="ovl show"
@@ -121,10 +134,10 @@ export const RoleFormModal: React.FC<RoleFormModalProps> = ({
         if (e.target === e.currentTarget) onClose();
       }}
     >
-      <div className="modal wide">
+      <div className="modal wide" style={{ maxWidth: '840px' }}>
         <div className="m-h">
           <div className="m-t">
-            {initialRole ? `Edit Role — ${initialRole.name}` : 'Create New Dynamic Role'}
+            {initialRole ? `Edit Role Permissions — ${initialRole.name}` : 'Create New Page-Wise Dynamic Role'}
           </div>
           <button className="m-x" onClick={onClose}>
             &times;
@@ -138,18 +151,19 @@ export const RoleFormModal: React.FC<RoleFormModalProps> = ({
                 <label className="fl">Role Name</label>
                 <input
                   className="fi"
-                  placeholder="e.g. Lead Designer"
+                  placeholder="e.g. Content Creator"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   disabled={initialRole?.code === 'super_admin'}
+                  required
                 />
               </div>
 
               <div className="fg">
-                <label className="fl">Role Code (Unique)</label>
+                <label className="fl">Role Code (Unique Identifier)</label>
                 <input
                   className="fi"
-                  placeholder="lead_designer"
+                  placeholder="content_creator"
                   value={code}
                   onChange={(e) => setCode(e.target.value)}
                   disabled={!!initialRole}
@@ -161,7 +175,7 @@ export const RoleFormModal: React.FC<RoleFormModalProps> = ({
               <label className="fl">Description</label>
               <input
                 className="fi"
-                placeholder="What this role does..."
+                placeholder="Responsibilities and access scope..."
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
               />
@@ -178,95 +192,152 @@ export const RoleFormModal: React.FC<RoleFormModalProps> = ({
               }}
             >
               <div className="fl" style={{ margin: 0 }}>
-                Granted Permissions Matrix ({isWildcard ? 'Full Wildcard *' : `${selectedPerms.length} selected`})
+                Granted Page Permissions Matrix ({isWildcard ? 'Full Wildcard *' : `${selectedPerms.length} selected`})
               </div>
-              {!isWildcard && (
+              <div style={{ display: 'flex', gap: '8px' }}>
                 <button
                   type="button"
                   className="btn btn-s btn-sm"
-                  onClick={() => setSelectedPerms(allPermissions.map((p: any) => p.code))}
+                  onClick={() =>
+                    setSelectedPerms(
+                      isWildcard
+                        ? ['page.dashboard.view']
+                        : ['*']
+                    )
+                  }
                 >
-                  Select All System Permissions
+                  {isWildcard ? 'Disable Wildcard (*)' : '★ Enable Super Admin Wildcard (*)'}
                 </button>
-              )}
+              </div>
             </div>
 
             {isWildcard ? (
-              <div className="alert ok">
+              <div className="alert ok" style={{ marginBottom: 0 }}>
                 <span>★</span>
                 <div>
-                  <b>Super Admin Wildcard (*) Enabled.</b> This role bypasses permission checks and has full unrestricted access across all endpoints and UI actions.
+                  <b>Super Admin Wildcard (*) Enabled.</b> This role bypasses all route and action checks and has complete unrestricted view/edit/delete access across all pages.
                 </div>
               </div>
             ) : (
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '12px' }}>
-                {Object.entries(groupedPerms).map(([modName, perms]) => {
-                  const codes = perms.map((p) => p.code);
-                  const allSelected = codes.every((c) => selectedPerms.includes(c));
+              /* PAGE / FEATURE PERMISSIONS MATRIX TABLE */
+              <div className="tbl-wrap" style={{ border: '1px solid var(--border2)', borderRadius: 'var(--r)', overflow: 'hidden' }}>
+                <table className="tbl" style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'center' }}>
+                  <thead>
+                    <tr style={{ background: 'var(--panel2)' }}>
+                      <th style={{ textAlign: 'left', padding: '12px 16px', minWidth: '220px' }}>
+                        ➔ Page / Feature
+                      </th>
 
-                  return (
-                    <div
-                      key={modName}
-                      style={{
-                        background: 'var(--panel2)',
-                        border: '1px solid var(--border2)',
-                        borderRadius: 'var(--rs)',
-                        padding: '12px',
-                      }}
-                    >
-                      <div
-                        style={{
-                          display: 'flex',
-                          justifyContent: 'space-between',
-                          alignItems: 'center',
-                          marginBottom: '8px',
-                          paddingBottom: '6px',
-                          borderBottom: '1px solid var(--border)',
-                        }}
-                      >
-                        <span className="chip c-it">{modName}</span>
+                      <th style={{ padding: '10px' }}>
+                        <div>View (Read)</div>
                         <button
                           type="button"
-                          style={{ fontSize: '10px', color: 'var(--gold)', fontWeight: 600 }}
-                          onClick={() => handleToggleModule(perms)}
+                          style={{ fontSize: '9px', color: 'var(--gold)', fontWeight: 600, marginTop: '2px' }}
+                          onClick={() => handleToggleColumn('view')}
                         >
-                          {allSelected ? 'Deselect All' : 'Select All'}
+                          Toggle All
                         </button>
-                      </div>
+                      </th>
 
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                        {perms.map((p) => {
-                          const isChecked = selectedPerms.includes(p.code);
-                          return (
-                            <label
-                              key={p._id}
-                              style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '8px',
-                                fontSize: '11.5px',
-                                cursor: 'pointer',
-                                color: isChecked ? 'var(--txt)' : 'var(--txt3)',
-                              }}
-                            >
-                              <input
-                                type="checkbox"
-                                checked={isChecked}
-                                onChange={() => togglePermission(p.code)}
-                              />
-                              <div>
-                                <span style={{ fontWeight: isChecked ? 600 : 400 }}>{p.name}</span>
-                                <span className="mono" style={{ fontSize: '9px', marginLeft: '5px', color: 'var(--txt3)' }}>
-                                  ({p.code})
-                                </span>
+                      <th style={{ padding: '10px' }}>
+                        <div>Create</div>
+                        <button
+                          type="button"
+                          style={{ fontSize: '9px', color: 'var(--gold)', fontWeight: 600, marginTop: '2px' }}
+                          onClick={() => handleToggleColumn('create')}
+                        >
+                          Toggle All
+                        </button>
+                      </th>
+
+                      <th style={{ padding: '10px' }}>
+                        <div>Edit (Update)</div>
+                        <button
+                          type="button"
+                          style={{ fontSize: '9px', color: 'var(--gold)', fontWeight: 600, marginTop: '2px' }}
+                          onClick={() => handleToggleColumn('edit')}
+                        >
+                          Toggle All
+                        </button>
+                      </th>
+
+                      <th style={{ padding: '10px' }}>
+                        <div>Delete</div>
+                        <button
+                          type="button"
+                          style={{ fontSize: '9px', color: 'var(--gold)', fontWeight: 600, marginTop: '2px' }}
+                          onClick={() => handleToggleColumn('delete')}
+                        >
+                          Toggle All
+                        </button>
+                      </th>
+                    </tr>
+                  </thead>
+
+                  <tbody>
+                    {SYSTEM_PAGE_ROWS.map((page) => {
+                      const actions: Array<'view' | 'create' | 'edit' | 'delete'> = ['view', 'create', 'edit', 'delete'];
+
+                      return (
+                        <tr key={page.key} style={{ borderBottom: '1px solid var(--border)' }}>
+                          <td style={{ textAlign: 'left', padding: '12px 16px', fontWeight: 600 }}>
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                <span style={{ fontSize: '16px' }}>{page.icon}</span>
+                                <div>
+                                  <div>{page.title}</div>
+                                  <div className="mono" style={{ fontSize: '9.5px', color: 'var(--txt3)' }}>
+                                    /{page.key === 'dashboard' ? 'dashboard' : page.key}
+                                  </div>
+                                </div>
                               </div>
-                            </label>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  );
-                })}
+                              <button
+                                type="button"
+                                style={{ fontSize: '9px', color: 'var(--txt3)', textTransform: 'uppercase', letterSpacing: '0.5px' }}
+                                onClick={() => handleToggleRow(page.key)}
+                              >
+                                Row
+                              </button>
+                            </div>
+                          </td>
+
+                          {actions.map((act) => {
+                            const code = `page.${page.key}.${act}`;
+                            const isChecked = selectedPerms.includes(code);
+
+                            return (
+                              <td
+                                key={act}
+                                style={{ padding: '10px', cursor: 'pointer', userSelect: 'none' }}
+                                onClick={() => togglePermission(code)}
+                              >
+                                <div
+                                  style={{
+                                    width: '28px',
+                                    height: '28px',
+                                    borderRadius: '50%',
+                                    margin: 'auto',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    fontSize: '13px',
+                                    fontWeight: 800,
+                                    background: isChecked ? 'rgba(16, 185, 129, 0.18)' : 'rgba(239, 68, 68, 0.12)',
+                                    color: isChecked ? 'var(--green)' : 'var(--red)',
+                                    border: `1.5px solid ${isChecked ? 'var(--green)' : 'rgba(239, 68, 68, 0.3)'}`,
+                                    transition: 'all 0.15s ease',
+                                  }}
+                                >
+                                  {isChecked ? '✓' : '✕'}
+                                </div>
+                              </td>
+                            );
+                          })}
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
               </div>
             )}
           </div>
