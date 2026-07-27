@@ -7,6 +7,7 @@ export interface UserProfile {
   email: string;
   short: string;
   role: string;
+  roleRef?: string;
   fn: string;
   team: string;
   color: string;
@@ -28,27 +29,12 @@ interface AuthState {
   isLoading: boolean;
   login: (user: UserProfile, token: string) => void;
   logout: () => Promise<void>;
-  logoutAccount: (userId: string) => Promise<void>;
+  logoutAccount: (userIdOrEmail: string) => Promise<void>;
   logoutAll: () => Promise<void>;
   checkAuth: () => Promise<boolean>;
-  switchAccount: (userId: string) => Promise<void>;
+  switchAccount: (userIdOrEmail: string) => Promise<void>;
   hasPermission: (permission: string) => boolean;
 }
-
-const getInitialUser = (): UserProfile | null => {
-  if (typeof window === 'undefined') return null;
-  try {
-    const raw = localStorage.getItem('masters_expo_user');
-    return raw ? JSON.parse(raw) : null;
-  } catch (e) {
-    return null;
-  }
-};
-
-const getInitialToken = (): string | null => {
-  if (typeof window === 'undefined') return null;
-  return localStorage.getItem('masters_expo_token') || null;
-};
 
 const getSavedAccounts = (): SavedAccount[] => {
   if (typeof window === 'undefined') return [];
@@ -58,7 +44,9 @@ const getSavedAccounts = (): SavedAccount[] => {
     const uniqueMap = new Map<string, SavedAccount>();
     parsed.forEach((acc) => {
       const key = (acc.user.email || acc.user.id || (acc.user as any)._id || '').toLowerCase();
-      if (key) uniqueMap.set(key, acc);
+      if (key && !uniqueMap.has(key)) {
+        uniqueMap.set(key, acc);
+      }
     });
     return Array.from(uniqueMap.values());
   } catch (e) {
@@ -66,93 +54,104 @@ const getSavedAccounts = (): SavedAccount[] => {
   }
 };
 
-const setSavedAccounts = (accounts: SavedAccount[]) => {
-  if (typeof window !== 'undefined') {
-    const uniqueMap = new Map<string, SavedAccount>();
-    accounts.forEach((acc) => {
-      const key = (acc.user.email || acc.user.id || (acc.user as any)._id || '').toLowerCase();
-      if (key) uniqueMap.set(key, acc);
-    });
-    const uniqueAccounts = Array.from(uniqueMap.values());
-    localStorage.setItem('masters_expo_accounts', JSON.stringify(uniqueAccounts));
+/**
+ * Synchronizes localStorage with current accounts array.
+ * Rule: Index 0 (accounts[0]) is ALWAYS the currently active session!
+ */
+const syncStorageWithAccounts = (accounts: SavedAccount[]) => {
+  if (typeof window === 'undefined') return;
+
+  const uniqueMap = new Map<string, SavedAccount>();
+  accounts.forEach((acc) => {
+    const key = (acc.user.email || acc.user.id || (acc.user as any)._id || '').toLowerCase();
+    if (key && !uniqueMap.has(key)) {
+      uniqueMap.set(key, acc);
+    }
+  });
+
+  const uniqueList = Array.from(uniqueMap.values());
+  localStorage.setItem('masters_expo_accounts', JSON.stringify(uniqueList));
+
+  if (uniqueList.length > 0) {
+    const active = uniqueList[0];
+    localStorage.setItem('masters_expo_token', active.token);
+    localStorage.setItem('masters_expo_user', JSON.stringify(active.user));
+  } else {
+    localStorage.removeItem('masters_expo_token');
+    localStorage.removeItem('masters_expo_user');
   }
 };
 
-const initialUser = getInitialUser();
-const initialToken = getInitialToken();
+const initialAccounts = getSavedAccounts();
+const activeAccount = initialAccounts.length > 0 ? initialAccounts[0] : null;
 
 export const useAuthStore = create<AuthState>((set, get) => ({
-  user: initialUser,
-  token: initialToken,
-  accounts: getSavedAccounts(),
-  isAuthenticated: !!initialUser,
+  user: activeAccount ? activeAccount.user : null,
+  token: activeAccount ? activeAccount.token : null,
+  accounts: initialAccounts,
+  isAuthenticated: !!activeAccount,
   isLoading: false,
 
   login: (user, token) => {
-    if (typeof window !== 'undefined') {
-      localStorage.removeItem('accessToken');
-      localStorage.removeItem('currentUser');
-      localStorage.setItem('masters_expo_token', token);
-      localStorage.setItem('masters_expo_user', JSON.stringify(user));
-    }
-
-    const currentAccounts = getSavedAccounts();
+    const current = getSavedAccounts();
     const userEmail = (user.email || '').toLowerCase();
-    const filtered = currentAccounts.filter(
+
+    // Filter out if user already exists in saved list
+    const filtered = current.filter(
       (acc) => (acc.user.email || '').toLowerCase() !== userEmail
     );
-    const updated = [...filtered, { user, token }];
-    setSavedAccounts(updated);
 
-    set({ user, token, accounts: updated, isAuthenticated: true, isLoading: false });
+    // Prepend new account to TOP (Index 0)
+    const updated = [{ user, token }, ...filtered];
+    syncStorageWithAccounts(updated);
+
+    set({
+      user,
+      token,
+      accounts: updated,
+      isAuthenticated: true,
+      isLoading: false,
+    });
   },
 
   logout: async () => {
     const currentUser = get().user;
     if (currentUser) {
-      const currentId = currentUser.id || (currentUser as any)._id;
-      await get().logoutAccount(currentId);
+      await get().logoutAccount(currentUser.id || currentUser.email);
     } else {
       await get().logoutAll();
     }
   },
 
-  logoutAccount: async (userId: string) => {
-    const currentAccounts = getSavedAccounts();
-    const updated = currentAccounts.filter(
+  logoutAccount: async (userIdOrEmail: string) => {
+    const current = getSavedAccounts();
+    const targetKey = (userIdOrEmail || '').toLowerCase();
+
+    const updated = current.filter(
       (acc) =>
-        (acc.user.id || (acc.user as any)._id) !== userId &&
-        (acc.user.email || '').toLowerCase() !== userId.toLowerCase()
+        (acc.user.id || (acc.user as any)._id || '').toLowerCase() !== targetKey &&
+        (acc.user.email || '').toLowerCase() !== targetKey
     );
-    setSavedAccounts(updated);
 
-    const currentUser = get().user;
-    const activeId = currentUser ? currentUser.id || (currentUser as any)._id : null;
+    syncStorageWithAccounts(updated);
 
-    if (activeId === userId || (currentUser && currentUser.email.toLowerCase() === userId.toLowerCase())) {
-      if (updated.length > 0) {
-        const next = updated[0];
-        if (typeof window !== 'undefined') {
-          localStorage.setItem('masters_expo_token', next.token);
-          localStorage.setItem('masters_expo_user', JSON.stringify(next.user));
-        }
-        set({
-          user: next.user,
-          token: next.token,
-          accounts: updated,
-          isAuthenticated: true,
-          isLoading: false,
-        });
-        try {
-          await api.post('/auth/switch-user', { userId: next.user.id || (next.user as any)._id });
-        } catch (e) {
-          // Fallback
-        }
-      } else {
-        await get().logoutAll();
-      }
+    if (updated.length > 0) {
+      const active = updated[0];
+      set({
+        user: active.user,
+        token: active.token,
+        accounts: updated,
+        isAuthenticated: true,
+        isLoading: false,
+      });
     } else {
-      set({ accounts: updated });
+      set({
+        user: null,
+        token: null,
+        accounts: [],
+        isAuthenticated: false,
+        isLoading: false,
+      });
     }
   },
 
@@ -174,38 +173,41 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   },
 
   checkAuth: async () => {
+    const current = getSavedAccounts();
+    if (current.length === 0) {
+      set({ isLoading: false, isAuthenticated: false, user: null, token: null, accounts: [] });
+      return false;
+    }
+
+    const active = current[0];
+    set({
+      user: active.user,
+      token: active.token,
+      accounts: current,
+      isAuthenticated: true,
+      isLoading: false,
+    });
+
     try {
       const res = await api.get('/auth/profile');
       if (res.data.success && res.data.data) {
-        const user = res.data.data;
-        const token = localStorage.getItem('masters_expo_token') || 'cookie_session';
+        const updatedUser = res.data.data;
+        const updatedAccounts = [...current];
+        updatedAccounts[0] = { ...active, user: updatedUser };
+        syncStorageWithAccounts(updatedAccounts);
 
-        const currentAccounts = getSavedAccounts();
-        const userEmail = (user.email || '').toLowerCase();
-        const filtered = currentAccounts.filter(
-          (acc) => (acc.user.email || '').toLowerCase() !== userEmail
-        );
-        const updated = [...filtered, { user, token }];
-        setSavedAccounts(updated);
-
-        if (typeof window !== 'undefined') {
-          localStorage.setItem('masters_expo_user', JSON.stringify(user));
-        }
-
-        set({ user, token, accounts: updated, isAuthenticated: true, isLoading: false });
+        set({
+          user: updatedUser,
+          accounts: updatedAccounts,
+          isAuthenticated: true,
+          isLoading: false,
+        });
         return true;
       }
-    } catch (error) {
-      // Handle 401 Unauthorized
-      if ((error as any)?.response?.status === 401) {
-        const token = localStorage.getItem('masters_expo_token');
-        // If there's no saved local token, clear session
-        if (!token) {
-          if (typeof window !== 'undefined') {
-            localStorage.removeItem('masters_expo_user');
-          }
-          set({ user: null, token: null, isAuthenticated: false, isLoading: false });
-        }
+    } catch (error: any) {
+      if (error?.response?.status === 401) {
+        // If index 0 token is invalid, remove it and switch to next saved account
+        get().logoutAccount(active.user.id || active.user.email);
       }
     }
 
@@ -213,28 +215,45 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     return false;
   },
 
-  switchAccount: async (userId: string) => {
-    const saved = get().accounts.find(
+  switchAccount: async (userIdOrEmail: string) => {
+    const current = getSavedAccounts();
+    const targetKey = (userIdOrEmail || '').toLowerCase();
+
+    const targetAccount = current.find(
       (acc) =>
-        (acc.user.id || (acc.user as any)._id) === userId ||
-        (acc.user.email || '').toLowerCase() === userId.toLowerCase()
+        (acc.user.id || (acc.user as any)._id || '').toLowerCase() === targetKey ||
+        (acc.user.email || '').toLowerCase() === targetKey
     );
-    if (saved) {
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('masters_expo_token', saved.token);
-        localStorage.setItem('masters_expo_user', JSON.stringify(saved.user));
-      }
-      set({ user: saved.user, token: saved.token, isAuthenticated: true, isLoading: false });
+
+    if (targetAccount) {
+      // Move selected account to index 0 (TOP)!
+      const filtered = current.filter(
+        (acc) =>
+          (acc.user.id || (acc.user as any)._id || '').toLowerCase() !== targetKey &&
+          (acc.user.email || '').toLowerCase() !== targetKey
+      );
+
+      const updated = [targetAccount, ...filtered];
+      syncStorageWithAccounts(updated);
+
+      set({
+        user: targetAccount.user,
+        token: targetAccount.token,
+        accounts: updated,
+        isAuthenticated: true,
+        isLoading: false,
+      });
     }
 
+    // Sync session on backend
     try {
-      const res = await api.post('/auth/switch-user', { userId });
-      if (res.data.success) {
+      const res = await api.post('/auth/switch-user', { userId: userIdOrEmail });
+      if (res.data.success && res.data.data) {
         const { accessToken, user } = res.data.data;
         get().login(user, accessToken);
       }
     } catch (error) {
-      console.error('Failed to switch account session on server:', error);
+      console.error('Backend switch account sync error:', error);
     }
   },
 
