@@ -61,53 +61,55 @@ export default function PageManagementPage() {
           </button>
         </div>
 
-        <table className="tbl">
-          <thead>
-            <tr>
-              <th style={{ width: '40px' }}>Icon</th>
-              <th>Page Title</th>
-              <th>Route Path</th>
-              <th>Module</th>
-              <th style={{ width: '60px' }}>Order</th>
-              <th style={{ width: '90px' }}>Visibility</th>
-              <th style={{ width: '80px' }}>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {pages.map((p: PageItem) => (
-              <tr key={p._id}>
-                <td style={{ fontSize: '16px' }}>{p.icon || '📄'}</td>
-                <td className="strong">{p.title}</td>
-                <td className="mono">{p.route}</td>
-                <td>
-                  <span className="chip c-it">{p.module}</span>
-                </td>
-                <td className="mono">{p.displayOrder}</td>
-                <td>
-                  {p.isHidden ? (
-                    <span className="chip p-p0">Hidden</span>
-                  ) : p.isPublic ? (
-                    <span className="chip c-design">Public</span>
-                  ) : (
-                    <span className="chip c-it">Active</span>
-                  )}
-                </td>
-                <td>
-                  <button
-                    className="btn btn-d btn-sm"
-                    onClick={() => {
-                      if (confirm(`Delete page ${p.title}?`)) {
-                        deletePageMutation.mutate(p._id);
-                      }
-                    }}
-                  >
-                    Delete
-                  </button>
-                </td>
+        <div className="tbl-wrap">
+          <table className="tbl">
+            <thead>
+              <tr>
+                <th style={{ width: '40px' }}>Icon</th>
+                <th>Page Title</th>
+                <th>Route Path</th>
+                <th>Module</th>
+                <th style={{ width: '60px' }}>Order</th>
+                <th style={{ width: '90px' }}>Visibility</th>
+                <th style={{ width: '80px' }}>Actions</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {pages.map((p: PageItem) => (
+                <tr key={p._id}>
+                  <td style={{ fontSize: '16px' }}>{p.icon || '📄'}</td>
+                  <td className="strong">{p.title}</td>
+                  <td className="mono">{p.route}</td>
+                  <td>
+                    <span className="chip c-it">{p.module}</span>
+                  </td>
+                  <td className="mono">{p.displayOrder}</td>
+                  <td>
+                    {p.isHidden ? (
+                      <span className="chip p-p0">Hidden</span>
+                    ) : p.isPublic ? (
+                      <span className="chip c-design">Public</span>
+                    ) : (
+                      <span className="chip c-it">Active</span>
+                    )}
+                  </td>
+                  <td>
+                    <button
+                      className="btn btn-d btn-sm"
+                      onClick={() => {
+                        if (confirm(`Delete page ${p.title}?`)) {
+                          deletePageMutation.mutate(p._id);
+                        }
+                      }}
+                    >
+                      Delete
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );
