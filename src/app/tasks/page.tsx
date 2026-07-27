@@ -35,12 +35,20 @@ export default function TasksPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['tasks'] });
     },
+    onError: (err: any) => {
+      alert(err.response?.data?.message || 'Access Restricted. Only the assigned team member, reviewer, or Super Admin can update this task.');
+      queryClient.invalidateQueries({ queryKey: ['tasks'] });
+    },
   });
 
   const createTaskMutation = useMutation({
     mutationFn: (taskData: Partial<TaskItem>) => api.post('/tasks', taskData),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['tasks'] });
+      setIsFormOpen(false);
+    },
+    onError: (err: any) => {
+      alert(err.response?.data?.message || 'Failed to create task.');
     },
   });
 
@@ -49,6 +57,11 @@ export default function TasksPage() {
       api.put(`/tasks/${id}`, taskData),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['tasks'] });
+      setIsFormOpen(false);
+      setEditingTask(null);
+    },
+    onError: (err: any) => {
+      alert(err.response?.data?.message || 'Access Restricted. Only the assigned team member, reviewer, or Super Admin can update this task.');
     },
   });
 
@@ -57,6 +70,9 @@ export default function TasksPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['tasks'] });
       setSelectedTaskId(null);
+    },
+    onError: (err: any) => {
+      alert(err.response?.data?.message || 'Access Restricted. Only the task creator or Super Admin can delete this task.');
     },
   });
 
