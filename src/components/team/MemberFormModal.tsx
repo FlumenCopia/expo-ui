@@ -6,7 +6,7 @@ import { api } from '@/lib/api';
 import { MemberItem } from '@/components/dashboard/CommandCenterDashboard';
 
 interface MemberFormModalProps {
-  initialMember?: (MemberItem & { skills?: string[]; email?: string }) | null;
+  initialMember?: (MemberItem & { skills?: string[]; email?: string; roleRef?: any }) | null;
   isOpen: boolean;
   onClose: () => void;
   onSubmit: (memberData: any) => void;
@@ -25,7 +25,7 @@ export const MemberFormModal: React.FC<MemberFormModalProps> = ({
   const [password, setPassword] = useState('');
   const [short, setShort] = useState('');
   const [fn, setFn] = useState('');
-  const [role, setRole] = useState('member');
+  const [roleId, setRoleId] = useState('');
   const [team, setTeam] = useState('core');
   const [cap, setCap] = useState(20);
   const [skills, setSkills] = useState('');
@@ -44,7 +44,15 @@ export const MemberFormModal: React.FC<MemberFormModalProps> = ({
       setPassword('');
       setShort(initialMember.short || '');
       setFn(initialMember.fn || '');
-      setRole(initialMember.role || 'member');
+      
+      const existingRoleId = initialMember.roleRef?._id || (typeof initialMember.roleRef === 'string' ? initialMember.roleRef : null);
+      if (existingRoleId) {
+        setRoleId(existingRoleId);
+      } else {
+        const matchedRole = roles.find((r: any) => r.code === initialMember.role);
+        setRoleId(matchedRole?._id || roles[0]?._id || '');
+      }
+
       setTeam((initialMember as any).team || 'core');
       setCap(initialMember.cap || 20);
       setSkills((initialMember.skills || []).join(', '));
@@ -54,7 +62,7 @@ export const MemberFormModal: React.FC<MemberFormModalProps> = ({
       setPassword('User@123456');
       setShort('');
       setFn('');
-      setRole(roles[0]?.code || 'member');
+      setRoleId(roles[0]?._id || '');
       setTeam('core');
       setCap(20);
       setSkills('');
@@ -70,13 +78,17 @@ export const MemberFormModal: React.FC<MemberFormModalProps> = ({
       return;
     }
 
+    const selectedRoleDoc = roles.find((r: any) => r._id === roleId);
+
     onSubmit({
       name,
       email: email || `${name.toLowerCase().replace(/\s+/g, '.')}@flumenx.com`,
       password,
       short: short || name.slice(0, 2).toUpperCase(),
       fn: fn || 'Team Member',
-      role,
+      role: selectedRoleDoc ? selectedRoleDoc.code : roleId,
+      roleId: roleId,
+      roleRef: roleId,
       team,
       cap: Number(cap),
       skills: skills.split(',').map((s) => s.trim()).filter(Boolean),
@@ -177,10 +189,10 @@ export const MemberFormModal: React.FC<MemberFormModalProps> = ({
 
             <div className="frow">
               <div className="fg">
-                <label className="fl">Assigned Role (Dynamic)</label>
-                <select className="fs" value={role} onChange={(e) => setRole(e.target.value)}>
+                <label className="fl">Assigned Role (Role ID Selection)</label>
+                <select className="fs" value={roleId} onChange={(e) => setRoleId(e.target.value)}>
                   {roles.map((r: any) => (
-                    <option key={r._id || r.code} value={r.code}>
+                    <option key={r._id} value={r._id}>
                       {r.name} ({r.code})
                     </option>
                   ))}
