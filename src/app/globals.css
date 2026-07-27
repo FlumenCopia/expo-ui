@@ -57,6 +57,7 @@ input,select,textarea{font-family:inherit;font-size:13px}
 .tb-btn:hover{background:var(--panel3);color:var(--txt)}
 .tb-btn.primary{background:var(--gold);color:#0B0E14;border-color:var(--gold)}
 .tb-btn.primary:hover{background:#FFB93D}
+.tb-user-badge{display:flex;align-items:center;gap:8px;padding:4px 8px;background:var(--panel2);border-radius:var(--rs);border:1px solid var(--border2)}
 .countdown{background:var(--panel2);border:1px solid var(--border2);border-radius:var(--rs);padding:5px 12px;display:flex;align-items:center;gap:8px}
 .cd-num{font-family:'JetBrains Mono';font-size:15px;font-weight:600;color:var(--gold)}
 .cd-lbl{font-size:9px;color:var(--txt3);text-transform:uppercase;letter-spacing:.5px}
@@ -247,19 +248,28 @@ input,select,textarea{font-family:inherit;font-size:13px}
   .g2,.g3,.g4,.g5{grid-template-columns:1fr}
   .countdown{display:none}
   .content{padding:12px 10px;width:100%;overflow-x:hidden}
-  .topbar{padding:0 12px;height:52px}
+  .topbar{padding:0 10px;height:52px}
   .tb-title{font-size:14px}
   .tb-crumb{display:none}
   .frow,.frow3{grid-template-columns:1fr}
   .modal{max-width:96vw;width:96vw;margin:10px auto;max-height:88vh;display:flex;flex-direction:column}
   .m-b{overflow-y:auto;flex:1;-webkit-overflow-scrolling:touch}
-  .filters{overflow-x:auto;flex-wrap:nowrap;padding-bottom:6px;max-width:100%;-webkit-overflow-scrolling:touch}
-  .srch{width:160px;min-width:140px}
+  .filters{display:flex;flex-direction:column;align-items:stretch;gap:8px;margin-bottom:14px;width:100%}
+  .filters .srch{width:100%;min-width:100%}
+  .kb{grid-template-columns:repeat(6,minmax(82vw,1fr));min-width:calc(82vw * 6 + 60px);gap:10px}
+  .kb-col{min-height:380px}
 }
-@media(max-width:480px){
+@media(max-width:600px){
+  .topbar{padding:0 8px;gap:6px}
+  .tb-left{gap:8px}
+  .tb-title{font-size:13.5px;white-space:nowrap}
+  .tb-right{gap:4px}
   .tb-user-name{display:none}
   .tb-btn{padding:5px 8px;font-size:10.5px}
-  .tb-btn.primary{padding:5px 10px}
+  .tb-btn.primary{padding:5px 9px}
+}
+@media(max-width:480px){
+  .kb{grid-template-columns:repeat(6,minmax(88vw,1fr));min-width:calc(88vw * 6 + 50px);gap:8px}
   .stat-v{font-size:19px}
   .stat{padding:12px}
   .toasts{left:10px;right:10px;bottom:10px}
