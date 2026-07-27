@@ -47,7 +47,7 @@ export const Sidebar: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ is
   const unreadCount = notifications.filter((n: any) => !n.read).length;
 
   useEffect(() => {
-    // Fetch dynamic database-driven navigation items
+    // Fetch dynamic database-driven navigation items whenever active user changes
     api.get('/menus')
       .then((res) => {
         if (res.data.success && Array.isArray(res.data.data) && res.data.data.length > 0) {
@@ -59,7 +59,7 @@ export const Sidebar: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ is
       .catch(() => {
         setMenuItems(DEFAULT_MENU_ITEMS);
       });
-  }, []);
+  }, [user?.id, user?.role, user?.permissions]);
 
   const authorizedItems = menuItems.filter((item) => {
     if (!item.requiredPermission) return true;
@@ -193,7 +193,6 @@ export const Sidebar: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ is
                     onClick={async () => {
                       if (!isActive) {
                         await switchAccount(accId);
-                        router.push('/dashboard');
                       }
                       setShowAccountsMenu(false);
                     }}

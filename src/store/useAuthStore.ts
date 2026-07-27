@@ -144,6 +144,9 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         isAuthenticated: true,
         isLoading: false,
       });
+      if (typeof window !== 'undefined') {
+        window.location.href = '/dashboard';
+      }
     } else {
       set({
         user: null,
@@ -152,6 +155,9 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         isAuthenticated: false,
         isLoading: false,
       });
+      if (typeof window !== 'undefined') {
+        window.location.href = '/login';
+      }
     }
   },
 
@@ -167,6 +173,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         localStorage.removeItem('masters_expo_accounts');
         localStorage.removeItem('accessToken');
         localStorage.removeItem('currentUser');
+        window.location.href = '/login';
       }
       set({ user: null, token: null, accounts: [], isAuthenticated: false, isLoading: false });
     }
@@ -254,6 +261,11 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       }
     } catch (error) {
       console.error('Backend switch account sync error:', error);
+    }
+
+    // Refresh browser location to clear React Query caches and re-evaluate full page permissions
+    if (typeof window !== 'undefined') {
+      window.location.href = '/dashboard';
     }
   },
 
