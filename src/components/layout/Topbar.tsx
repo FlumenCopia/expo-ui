@@ -36,25 +36,27 @@ export const Topbar: React.FC<TopbarProps> = ({ onToggleSidebar }) => {
       case '/tasks':
         return { title: 'Task Board', crumb: 'Kanban & Workflows' };
       case '/timeline':
-        return { title: 'Timeline & Phases', crumb: 'Phase Milestones & Deliverables' };
+        return { title: 'Timeline & Phases', crumb: 'Phase Milestones' };
       case '/deliverables':
-        return { title: 'Contract Scope', crumb: 'Package B Ceiling & Tracking' };
+        return { title: 'Contract Scope', crumb: 'Package B Ceiling' };
       case '/approvals':
-        return { title: 'Approvals Queue', crumb: '24-Hour Review Turnaround' };
+        return { title: 'Approvals Queue', crumb: '24h Review' };
       case '/team':
-        return { title: 'Team Capacity', crumb: 'Member Workload & Skills' };
+        return { title: 'Team Capacity', crumb: 'Member Workload' };
+      case '/users':
+        return { title: 'User Accounts', crumb: 'User Management & Roles' };
       case '/kpi':
-        return { title: 'KPI Tracker', crumb: 'Agreed Floor vs Stretch Target' };
+        return { title: 'KPI Tracker', crumb: 'Targets & Metrics' };
       case '/budget':
-        return { title: 'Ad Spend & Budget', crumb: 'Meta + Google Spend Pacing' };
+        return { title: 'Ad Spend & Budget', crumb: 'Spend Pacing' };
       case '/notifications':
-        return { title: 'Notifications', crumb: 'Activity Alerts & Log' };
+        return { title: 'Notifications', crumb: 'Activity Alerts' };
       case '/settings':
         return { title: 'Settings & Access', crumb: 'RBAC, Users & Roles' };
       case '/admin/pages':
         return { title: 'Page Management', crumb: 'Dynamic Route Sync' };
       default:
-        return { title: 'Command Center', crumb: 'Masters Kerala RE Expo 2026 · Jul 18 – Sep 29' };
+        return { title: 'Command Center', crumb: 'Masters Kerala RE Expo 2026' };
     }
   };
 
@@ -63,10 +65,10 @@ export const Topbar: React.FC<TopbarProps> = ({ onToggleSidebar }) => {
   return (
     <div className="topbar">
       <div className="tb-left">
-        <button className="hamb" onClick={onToggleSidebar}>
+        <button className="hamb" onClick={onToggleSidebar} title="Toggle Sidebar">
           &#9776;
         </button>
-        <div>
+        <div style={{ minWidth: 0 }}>
           <div className="tb-title">{title}</div>
           <div className="tb-crumb">{crumb}</div>
         </div>
@@ -81,25 +83,15 @@ export const Topbar: React.FC<TopbarProps> = ({ onToggleSidebar }) => {
         </div>
 
         {user && (
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              padding: '4px 8px',
-              background: 'var(--panel2)',
-              borderRadius: 'var(--rs)',
-              border: '1px solid var(--border2)',
-            }}
-          >
-            <div className="tc-av" style={{ background: user.color || '#F5A623' }}>
+          <div className="tb-user-badge">
+            <div className="tc-av" style={{ background: user.color || '#F5A623' }} title={user.name}>
               {user.short}
             </div>
-            <div style={{ lineHeight: 1.1 }}>
-              <div style={{ fontSize: '11.5px', fontWeight: 700, color: 'var(--txt)' }}>
+            <div className="tb-user-name" style={{ lineHeight: 1.1 }}>
+              <div style={{ fontSize: '11.5px', fontWeight: 700, color: 'var(--txt)', whiteSpace: 'nowrap' }}>
                 {user.name}
               </div>
-              <div style={{ fontSize: '9.5px', color: 'var(--gold)' }}>
+              <div style={{ fontSize: '9.5px', color: 'var(--gold)', whiteSpace: 'nowrap' }}>
                 {user.role}
               </div>
             </div>
@@ -109,7 +101,7 @@ export const Topbar: React.FC<TopbarProps> = ({ onToggleSidebar }) => {
         {/* EXPORT DROPDOWN MENU */}
         <div style={{ position: 'relative' }}>
           <button
-            className="tb-btn"
+            className="tb-btn export-btn"
             onClick={() => setShowExportMenu(!showExportMenu)}
           >
             &#8681; Export ▼
@@ -182,6 +174,7 @@ export const Topbar: React.FC<TopbarProps> = ({ onToggleSidebar }) => {
           className="tb-btn"
           onClick={handleLogout}
           style={{ color: 'var(--red)', borderColor: 'rgba(239,68,68,.3)' }}
+          title="Logout"
         >
           🚪 Logout
         </button>
