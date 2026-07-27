@@ -18,17 +18,17 @@ interface MenuItem {
 }
 
 const DEFAULT_MENU_ITEMS: MenuItem[] = [
-  { title: 'Command Center', route: '/dashboard', icon: '☀️', section: 'CAMPAIGN', requiredPermission: 'view_all' },
-  { title: 'Task Board', route: '/tasks', icon: '📋', section: 'EXECUTION', requiredPermission: 'view_all' },
-  { title: 'Timeline & Phases', route: '/timeline', icon: '⏱️', section: 'EXECUTION', requiredPermission: 'view_all' },
-  { title: 'Contract Scope', route: '/deliverables', icon: '📦', section: 'EXECUTION', requiredPermission: 'view_all' },
-  { title: 'Approvals Queue', route: '/approvals', icon: '✅', section: 'EXECUTION', requiredPermission: 'approve', badge: 1, badgeCls: 'a' },
-  { title: 'Team Capacity', route: '/team', icon: '👥', section: 'MANAGEMENT', requiredPermission: 'view_all' },
-  { title: 'KPI Tracker', route: '/kpi', icon: '🎯', section: 'MANAGEMENT', requiredPermission: 'view_kpi' },
-  { title: 'Ad Spend & Budget', route: '/budget', icon: '💰', section: 'MANAGEMENT', requiredPermission: 'view_budget' },
-  { title: 'Notifications', route: '/notifications', icon: '🔔', section: 'SYSTEM' },
-  { title: 'Settings & Access', route: '/settings', icon: '⚙️', section: 'SYSTEM', requiredPermission: 'manage_team' },
-  { title: 'Page Management', route: '/admin/pages', icon: '📄', section: 'SYSTEM', requiredPermission: 'pages.manage' },
+  { title: 'Command Center', route: '/dashboard', icon: '☀️', section: 'CAMPAIGN', requiredPermission: 'page.dashboard.view' },
+  { title: 'Task Board', route: '/tasks', icon: '📋', section: 'EXECUTION', requiredPermission: 'page.tasks.view' },
+  { title: 'Timeline & Phases', route: '/timeline', icon: '⏱️', section: 'EXECUTION', requiredPermission: 'page.timeline.view' },
+  { title: 'Contract Scope', route: '/deliverables', icon: '📦', section: 'EXECUTION', requiredPermission: 'page.deliverables.view' },
+  { title: 'Approvals Queue', route: '/approvals', icon: '✅', section: 'EXECUTION', requiredPermission: 'page.approvals.view', badge: 1, badgeCls: 'a' },
+  { title: 'Team Capacity', route: '/team', icon: '👥', section: 'MANAGEMENT', requiredPermission: 'page.team.view' },
+  { title: 'KPI Tracker', route: '/kpi', icon: '🎯', section: 'MANAGEMENT', requiredPermission: 'page.kpi.view' },
+  { title: 'Ad Spend & Budget', route: '/budget', icon: '💰', section: 'MANAGEMENT', requiredPermission: 'page.budget.view' },
+  { title: 'Notifications', route: '/notifications', icon: '🔔', section: 'SYSTEM', requiredPermission: 'page.notifications.view' },
+  { title: 'Settings & Access', route: '/settings', icon: '⚙️', section: 'SYSTEM', requiredPermission: 'page.settings.view' },
+  { title: 'Page Management', route: '/admin/pages', icon: '📄', section: 'SYSTEM', requiredPermission: 'page.admin.view' },
 ];
 
 export const Sidebar: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpen, onClose }) => {
