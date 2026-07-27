@@ -39,7 +39,13 @@ const getSavedAccounts = (): SavedAccount[] => {
   if (typeof window === 'undefined') return [];
   try {
     const raw = localStorage.getItem('masters_expo_accounts');
-    return raw ? JSON.parse(raw) : [];
+    const parsed: SavedAccount[] = raw ? JSON.parse(raw) : [];
+    const uniqueMap = new Map<string, SavedAccount>();
+    parsed.forEach((acc) => {
+      const key = (acc.user.email || acc.user.id || (acc.user as any)._id || '').toLowerCase();
+      if (key) uniqueMap.set(key, acc);
+    });
+    return Array.from(uniqueMap.values());
   } catch (e) {
     return [];
   }
@@ -47,7 +53,14 @@ const getSavedAccounts = (): SavedAccount[] => {
 
 const setSavedAccounts = (accounts: SavedAccount[]) => {
   if (typeof window !== 'undefined') {
-    localStorage.setItem('masters_expo_accounts', JSON.stringify(accounts));
+    // Deduplicate before saving
+    const uniqueMap = new Map<string, SavedAccount>();
+    accounts.forEach((acc) => {
+      const key = (acc.user.email || acc.user.id || (acc.user as any)._id || '').toLowerCase();
+      if (key) uniqueMap.set(key, acc);
+    });
+    const uniqueAccounts = Array.from(uniqueMap.values());
+    localStorage.setItem('masters_expo_accounts', JSON.stringify(uniqueAccounts));
   }
 };
 
@@ -66,11 +79,11 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       localStorage.setItem('masters_expo_user', JSON.stringify(user));
     }
 
-    // Update saved accounts list
+    // Update saved accounts list with deduplication
     const currentAccounts = getSavedAccounts();
-    const userId = user.id || (user as any)._id;
+    const userEmail = (user.email || '').toLowerCase();
     const filtered = currentAccounts.filter(
-      (acc) => (acc.user.id || (acc.user as any)._id) !== userId
+      (acc) => (acc.user.email || '').toLowerCase() !== userEmail
     );
     const updated = [...filtered, { user, token }];
     setSavedAccounts(updated);
@@ -91,7 +104,9 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   logoutAccount: async (userId: string) => {
     const currentAccounts = getSavedAccounts();
     const updated = currentAccounts.filter(
-      (acc) => (acc.user.id || (acc.user as any)._id) !== userId
+      (acc) =>
+        (acc.user.id || (acc.user as any)._id) !== userId &&
+        (acc.user.email || '').toLowerCase() !== userId.toLowerCase()
     );
     setSavedAccounts(updated);
 
@@ -151,17 +166,14 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         const user = res.data.data;
         const token = localStorage.getItem('masters_expo_token') || 'cookie_session';
 
-        // Keep accounts updated
+        // Keep accounts updated with deduplication
         const currentAccounts = getSavedAccounts();
-        const userId = user.id || (user as any)._id;
-        const exists = currentAccounts.some(
-          (acc) => (acc.user.id || (acc.user as any)._id) === userId
+        const userEmail = (user.email || '').toLowerCase();
+        const filtered = currentAccounts.filter(
+          (acc) => (acc.user.email || '').toLowerCase() !== userEmail
         );
-        let updated = currentAccounts;
-        if (!exists) {
-          updated = [...currentAccounts, { user, token }];
-          setSavedAccounts(updated);
-        }
+        const updated = [...filtered, { user, token }];
+        setSavedAccounts(updated);
 
         set({ user, token, accounts: updated, isAuthenticated: true, isLoading: false });
         return true;
@@ -177,7 +189,9 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   switchAccount: async (userId: string) => {
     // 1. Instant local switch from saved accounts
     const saved = get().accounts.find(
-      (acc) => (acc.user.id || (acc.user as any)._id) === userId
+      (acc) =>
+        (acc.user.id || (acc.user as any)._id) === userId ||
+        (acc.user.email || '').toLowerCase() === userId.toLowerCase()
     );
     if (saved) {
       if (typeof window !== 'undefined') {

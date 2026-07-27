@@ -1,6 +1,6 @@
 'use client';
 
-import React, { Suspense, useState } from 'react';
+import React, { Suspense, useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuthStore } from '@/store/useAuthStore';
 import { api } from '@/lib/api';
@@ -10,11 +10,22 @@ function LoginContent() {
   const searchParams = useSearchParams();
   const isAddMode = searchParams.get('mode') === 'add';
 
-  const { login, accounts, switchAccount, user: currentUser } = useAuthStore();
+  const { login, accounts, switchAccount, isAuthenticated, user: currentUser } = useAuthStore();
+  const [mounted, setMounted] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (mounted && isAuthenticated && !isAddMode) {
+      router.replace('/dashboard');
+    }
+  }, [mounted, isAuthenticated, isAddMode, router]);
 
   const currentUserId = currentUser ? currentUser.id || (currentUser as any)._id : null;
 
@@ -81,18 +92,18 @@ function LoginContent() {
           </p>
         </div>
 
-        {/* SAVED ACCOUNTS QUICK SWITCH LIST */}
-        {accounts.length > 0 && (
+        {/* SAVED ACCOUNTS QUICK SWITCH LIST (ONLY AFTER MOUNTED TO PREVENT HYDRATION MISMATCH) */}
+        {mounted && accounts.length > 0 && (
           <div style={{ marginBottom: '20px' }}>
             <div className="fl" style={{ marginBottom: '8px' }}>Saved Accounts ({accounts.length})</div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
               {accounts.map((acc) => {
                 const accId = acc.user.id || (acc.user as any)._id;
-                const isActive = accId === currentUserId;
+                const isActive = accId === currentUserId || acc.user.email === currentUser?.email;
 
                 return (
                   <div
-                    key={accId}
+                    key={accId || acc.user.email}
                     style={{
                       display: 'flex',
                       alignItems: 'center',
@@ -103,7 +114,7 @@ function LoginContent() {
                       borderRadius: 'var(--rs)',
                       cursor: 'pointer',
                     }}
-                    onClick={() => handleSwitchSaved(accId)}
+                    onClick={() => handleSwitchSaved(accId || acc.user.email)}
                   >
                     <div className="tc-av" style={{ background: acc.user.color || '#3B82F6', width: '26px', height: '26px', fontSize: '11px' }}>
                       {acc.user.short}
@@ -134,7 +145,7 @@ function LoginContent() {
 
         <form onSubmit={handleSubmit}>
           <div className="fg" style={{ marginBottom: '18px' }}>
-            <label className="fl">{accounts.length > 0 ? 'Or Sign In to New Work Email' : 'Work Email Address'}</label>
+            <label className="fl">{mounted && accounts.length > 0 ? 'Or Sign In to New Work Email' : 'Work Email Address'}</label>
             <input
               className="fi"
               type="email"
@@ -163,7 +174,7 @@ function LoginContent() {
             style={{ width: '100%', padding: '12px', fontSize: '13.5px', fontWeight: 700 }}
             disabled={loading}
           >
-            {loading ? 'Authenticating Session...' : accounts.length > 0 ? 'Add Account & Sign In' : 'Sign In to Command Center'}
+            {loading ? 'Authenticating Session...' : mounted && accounts.length > 0 ? 'Add Account & Sign In' : 'Sign In to Command Center'}
           </button>
         </form>
 
