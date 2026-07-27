@@ -19,11 +19,9 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# local environment variables
-.env*.local
-.env
+# environment variables
+.env*
 !.env.example
-!.env.production
 
 # vercel / OS
 .vercel
