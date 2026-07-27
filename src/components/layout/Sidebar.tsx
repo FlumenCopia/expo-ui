@@ -17,11 +17,25 @@ interface MenuItem {
   badgeCls?: string;
 }
 
+const DEFAULT_MENU_ITEMS: MenuItem[] = [
+  { title: 'Command Center', route: '/dashboard', icon: '☀️', section: 'CAMPAIGN', requiredPermission: 'view_all' },
+  { title: 'Task Board', route: '/tasks', icon: '📋', section: 'EXECUTION', requiredPermission: 'view_all' },
+  { title: 'Timeline & Phases', route: '/timeline', icon: '⏱️', section: 'EXECUTION', requiredPermission: 'view_all' },
+  { title: 'Contract Scope', route: '/deliverables', icon: '📦', section: 'EXECUTION', requiredPermission: 'view_all' },
+  { title: 'Approvals Queue', route: '/approvals', icon: '✅', section: 'EXECUTION', requiredPermission: 'approve', badge: 1, badgeCls: 'a' },
+  { title: 'Team Capacity', route: '/team', icon: '👥', section: 'MANAGEMENT', requiredPermission: 'view_all' },
+  { title: 'KPI Tracker', route: '/kpi', icon: '🎯', section: 'MANAGEMENT', requiredPermission: 'view_kpi' },
+  { title: 'Ad Spend & Budget', route: '/budget', icon: '💰', section: 'MANAGEMENT', requiredPermission: 'view_budget' },
+  { title: 'Notifications', route: '/notifications', icon: '🔔', section: 'SYSTEM' },
+  { title: 'Settings & Access', route: '/settings', icon: '⚙️', section: 'SYSTEM', requiredPermission: 'manage_team' },
+  { title: 'Page Management', route: '/admin/pages', icon: '📄', section: 'SYSTEM', requiredPermission: 'pages.manage' },
+];
+
 export const Sidebar: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpen, onClose }) => {
   const pathname = usePathname();
   const router = useRouter();
   const { user, accounts, switchAccount, logoutAccount, logoutAll, hasPermission } = useAuthStore();
-  const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
+  const [menuItems, setMenuItems] = useState<MenuItem[]>(DEFAULT_MENU_ITEMS);
   const [showAccountsMenu, setShowAccountsMenu] = useState(false);
 
   const { data: notifications = [] } = useQuery({
@@ -36,25 +50,14 @@ export const Sidebar: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ is
     // Fetch dynamic database-driven navigation items
     api.get('/menus')
       .then((res) => {
-        if (res.data.success) {
+        if (res.data.success && Array.isArray(res.data.data) && res.data.data.length > 0) {
           setMenuItems(res.data.data);
+        } else {
+          setMenuItems(DEFAULT_MENU_ITEMS);
         }
       })
       .catch(() => {
-        // Default fallback items
-        setMenuItems([
-          { title: 'Command Center', route: '/dashboard', icon: '☀️', section: 'CAMPAIGN', requiredPermission: 'view_all' },
-          { title: 'Task Board', route: '/tasks', icon: '📋', section: 'EXECUTION', requiredPermission: 'view_all' },
-          { title: 'Timeline & Phases', route: '/timeline', icon: '⏱️', section: 'EXECUTION', requiredPermission: 'view_all' },
-          { title: 'Contract Scope', route: '/deliverables', icon: '📦', section: 'EXECUTION', requiredPermission: 'view_all' },
-          { title: 'Approvals Queue', route: '/approvals', icon: '✅', section: 'EXECUTION', requiredPermission: 'approve', badge: 1, badgeCls: 'a' },
-          { title: 'Team Capacity', route: '/team', icon: '👥', section: 'MANAGEMENT', requiredPermission: 'view_all' },
-          { title: 'KPI Tracker', route: '/kpi', icon: '🎯', section: 'MANAGEMENT', requiredPermission: 'view_kpi' },
-          { title: 'Ad Spend & Budget', route: '/budget', icon: '💰', section: 'MANAGEMENT', requiredPermission: 'view_budget' },
-          { title: 'Notifications', route: '/notifications', icon: '🔔', section: 'SYSTEM' },
-          { title: 'Settings & Access', route: '/settings', icon: '⚙️', section: 'SYSTEM', requiredPermission: 'manage_team' },
-          { title: 'Page Management', route: '/admin/pages', icon: '📄', section: 'SYSTEM', requiredPermission: 'pages.manage' },
-        ]);
+        setMenuItems(DEFAULT_MENU_ITEMS);
       });
   }, []);
 
