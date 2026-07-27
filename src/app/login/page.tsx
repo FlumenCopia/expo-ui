@@ -10,7 +10,7 @@ function LoginContent() {
   const searchParams = useSearchParams();
   const isAddMode = searchParams.get('mode') === 'add';
 
-  const { login, accounts, switchAccount, isAuthenticated, user: currentUser } = useAuthStore();
+  const { login, accounts, switchAccount, logoutAccount, logoutAll, isAuthenticated, user: currentUser } = useAuthStore();
   const [mounted, setMounted] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -66,7 +66,7 @@ function LoginContent() {
         className="card"
         style={{
           width: '100%',
-          maxWidth: '440px',
+          maxWidth: '460px',
           padding: '32px',
           boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.75)',
           border: '1px solid var(--border2)',
@@ -88,14 +88,26 @@ function LoginContent() {
             Masters Expo 2026
           </h1>
           <p style={{ fontSize: '11px', color: 'var(--gold)', letterSpacing: '1.2px', textTransform: 'uppercase', marginTop: '4px', fontWeight: 600 }}>
-            {isAddMode ? 'Add & Switch Saved Account' : 'Campaign Command Center · Secure Portal'}
+            {isAddMode ? '+ Add & Sign In to Work Account' : 'Campaign Command Center · Secure Portal'}
           </p>
         </div>
 
-        {/* SAVED ACCOUNTS QUICK SWITCH LIST (ONLY AFTER MOUNTED TO PREVENT HYDRATION MISMATCH) */}
+        {/* SAVED ACCOUNTS LIST WITH SINGLE-ACCOUNT SIGN OUT & SIGN OUT ALL */}
         {mounted && accounts.length > 0 && (
           <div style={{ marginBottom: '20px' }}>
-            <div className="fl" style={{ marginBottom: '8px' }}>Saved Accounts ({accounts.length})</div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+              <div className="fl" style={{ margin: 0 }}>Saved Accounts ({accounts.length})</div>
+              <button
+                type="button"
+                style={{ fontSize: '10px', color: 'var(--red)', fontWeight: 600 }}
+                onClick={() => {
+                  logoutAll();
+                }}
+              >
+                Log Out All Accounts
+              </button>
+            </div>
+
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
               {accounts.map((acc) => {
                 const accId = acc.user.id || (acc.user as any)._id;
@@ -116,7 +128,7 @@ function LoginContent() {
                     }}
                     onClick={() => handleSwitchSaved(accId || acc.user.email)}
                   >
-                    <div className="tc-av" style={{ background: acc.user.color || '#3B82F6', width: '26px', height: '26px', fontSize: '11px' }}>
+                    <div className="tc-av" style={{ background: acc.user.color || '#3B82F6', width: '28px', height: '28px', fontSize: '11px' }}>
                       {acc.user.short}
                     </div>
                     <div style={{ flex: 1, overflow: 'hidden' }}>
@@ -125,9 +137,31 @@ function LoginContent() {
                       </div>
                       <div style={{ fontSize: '10px', color: 'var(--txt3)' }}>{acc.user.email}</div>
                     </div>
-                    <button type="button" className="btn btn-s btn-sm" style={{ padding: '3px 8px', fontSize: '10px' }}>
-                      {isActive ? 'Current' : 'Switch'}
-                    </button>
+
+                    <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                      <button type="button" className="btn btn-s btn-sm" style={{ padding: '3px 8px', fontSize: '10px' }}>
+                        {isActive ? 'Current' : 'Switch'}
+                      </button>
+                      <button
+                        type="button"
+                        style={{
+                          padding: '3px 7px',
+                          fontSize: '11px',
+                          color: 'var(--red)',
+                          background: 'rgba(239, 68, 68, 0.1)',
+                          border: '1px solid rgba(239, 68, 68, 0.3)',
+                          borderRadius: '4px',
+                          cursor: 'pointer',
+                        }}
+                        title="Remove / Sign Out Account"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          logoutAccount(accId || acc.user.email);
+                        }}
+                      >
+                        ✕
+                      </button>
+                    </div>
                   </div>
                 );
               })}
@@ -177,6 +211,19 @@ function LoginContent() {
             {loading ? 'Authenticating Session...' : mounted && accounts.length > 0 ? 'Add Account & Sign In' : 'Sign In to Command Center'}
           </button>
         </form>
+
+        {mounted && isAuthenticated && isAddMode && (
+          <div style={{ marginTop: '14px', textAlign: 'center' }}>
+            <button
+              type="button"
+              className="btn btn-s btn-sm"
+              style={{ width: '100%' }}
+              onClick={() => router.push('/dashboard')}
+            >
+              ← Back to Active Dashboard ({currentUser?.name})
+            </button>
+          </div>
+        )}
 
         <div className="divider" style={{ margin: '24px 0 16px' }} />
 

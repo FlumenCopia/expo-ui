@@ -32,6 +32,10 @@ export const AuthGuard: React.FC<{ children: React.ReactNode }> = ({ children })
     if (!isAuthenticated && !isPublicRoute) {
       router.replace('/login');
     } else if (isAuthenticated && pathname === '/login') {
+      // If user explicitly navigated to add another account, stay on login page!
+      if (typeof window !== 'undefined' && window.location.search.includes('mode=add')) {
+        return;
+      }
       router.replace('/dashboard');
     }
   }, [isAuthenticated, isLoading, pathname, router]);
