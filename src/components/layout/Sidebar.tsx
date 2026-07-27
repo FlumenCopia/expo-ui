@@ -190,8 +190,11 @@ export const Sidebar: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ is
                       borderRadius: 'var(--rs)',
                       cursor: 'pointer',
                     }}
-                    onClick={() => {
-                      if (!isActive) switchAccount(accId);
+                    onClick={async () => {
+                      if (!isActive) {
+                        await switchAccount(accId);
+                        router.push('/dashboard');
+                      }
                       setShowAccountsMenu(false);
                     }}
                   >
@@ -230,7 +233,7 @@ export const Sidebar: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ is
               style={{ width: '100%', marginBottom: '4px', textAlign: 'center' }}
               onClick={() => {
                 setShowAccountsMenu(false);
-                router.push('/login');
+                router.push('/login?mode=add');
               }}
             >
               + Sign In to Another Account

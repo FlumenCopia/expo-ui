@@ -113,7 +113,11 @@ export const useAuthStore = create<AuthState>((set, get) => ({
           isAuthenticated: true,
           isLoading: false,
         });
-        await api.post('/auth/switch-user', { userId: next.user.id || (next.user as any)._id });
+        try {
+          await api.post('/auth/switch-user', { userId: next.user.id || (next.user as any)._id });
+        } catch (e) {
+          // Fallback
+        }
       } else {
         // Log out completely
         await get().logoutAll();
@@ -171,6 +175,19 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   },
 
   switchAccount: async (userId: string) => {
+    // 1. Instant local switch from saved accounts
+    const saved = get().accounts.find(
+      (acc) => (acc.user.id || (acc.user as any)._id) === userId
+    );
+    if (saved) {
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('masters_expo_token', saved.token);
+        localStorage.setItem('masters_expo_user', JSON.stringify(saved.user));
+      }
+      set({ user: saved.user, token: saved.token, isAuthenticated: true });
+    }
+
+    // 2. Server side session sync
     try {
       const res = await api.post('/auth/switch-user', { userId });
       if (res.data.success) {
@@ -178,7 +195,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         get().login(user, accessToken);
       }
     } catch (error) {
-      console.error('Failed to switch account:', error);
+      console.error('Failed to switch account session on server:', error);
     }
   },
 
