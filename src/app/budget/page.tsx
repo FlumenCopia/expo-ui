@@ -8,6 +8,7 @@ import { ChartWidget } from '@/components/common/ChartWidget';
 import { useAuthStore } from '@/store/useAuthStore';
 import { PageGuard } from '@/components/rbac/PermissionGuard';
 import { BudgetItem } from '@/components/dashboard/CommandCenterDashboard';
+import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 
 const PHASES = [
   { id: 'ph1', name: 'IGNITE' },
@@ -22,7 +23,7 @@ export default function BudgetPage() {
   const { hasPermission } = useAuthStore();
   const [inputs, setInputs] = useState<Record<string, number>>({});
 
-  const { data: budgetList = [] } = useQuery({
+  const { data: budgetList = [], isLoading: budgetLoading } = useQuery({
     queryKey: ['budget'],
     queryFn: () => api.get('/budget').then((res) => res.data.data),
   });
@@ -35,17 +36,21 @@ export default function BudgetPage() {
     },
   });
 
-  const expoStart = new Date('2026-07-18T00:00:00+05:30');
-  const expoEnd = new Date('2026-09-29T23:59:00+05:30');
-  const now = new Date();
+  const EXPO_START = new Date('2026-07-18T00:00:00+05:30');
+  const EXPO_END = new Date('2026-09-29T23:59:00+05:30');
 
   const tot = budgetList.reduce((a: number, b: BudgetItem) => a + b.total, 0);
   const spent = budgetList.reduce((a: number, b: BudgetItem) => a + b.spent, 0);
+  const now = new Date();
 
-  const elapsed = Math.max(1, Math.ceil((now.getTime() - expoStart.getTime()) / 86400000));
-  const totalDays = Math.ceil((expoEnd.getTime() - expoStart.getTime()) / 86400000);
+  const elapsed = Math.max(1, Math.ceil((now.getTime() - EXPO_START.getTime()) / 86400000));
+  const totalDays = Math.ceil((EXPO_END.getTime() - EXPO_START.getTime()) / 86400000);
   const idealSpend = Math.round(tot * (elapsed / totalDays));
   const pace = spent - idealSpend;
+
+  if (budgetLoading) {
+    return <LoadingSpinner message="Loading Budget & Spend Allocations..." minHeight="450px" />;
+  }
 
   const fmtINR = (val: number) => {
     return '₹' + val.toLocaleString('en-IN');

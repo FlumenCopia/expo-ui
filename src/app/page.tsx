@@ -56,31 +56,39 @@ const DEFAULT_TASKS = [
   { id: 'T005', code: 'EXP-005', title: 'Website update — dates, venue, CTAs above fold', type: 'it', phase: 'ph1', assignee: 'u_akhil', reviewer: 'u_anurag', status: 'progress', priority: 'p0', due: '2026-07-27', hours: 6, deliverable: 'd_web', desc: 'expokerala.com currently shows old dates.' }
 ];
 
+import { LoadingSpinner } from '@/components/common/LoadingSpinner';
+
 export default function Home() {
-  const { data: tasksData } = useQuery({
+  const { data: tasksData, isLoading: tasksLoading } = useQuery({
     queryKey: ['tasks'],
     queryFn: () => api.get('/tasks').then((res) => res.data.data),
   });
 
-  const { data: membersData } = useQuery({
+  const { data: membersData, isLoading: membersLoading } = useQuery({
     queryKey: ['members'],
     queryFn: () => api.get('/users').then((res) => res.data.data),
   });
 
-  const { data: deliverablesData } = useQuery({
+  const { data: deliverablesData, isLoading: deliverablesLoading } = useQuery({
     queryKey: ['deliverables'],
     queryFn: () => api.get('/deliverables').then((res) => res.data.data),
   });
 
-  const { data: kpisData } = useQuery({
+  const { data: kpisData, isLoading: kpisLoading } = useQuery({
     queryKey: ['kpis'],
     queryFn: () => api.get('/kpis').then((res) => res.data.data),
   });
 
-  const { data: budgetData } = useQuery({
+  const { data: budgetData, isLoading: budgetLoading } = useQuery({
     queryKey: ['budget'],
     queryFn: () => api.get('/budget').then((res) => res.data.data),
   });
+
+  const isLoading = tasksLoading || membersLoading || deliverablesLoading || kpisLoading || budgetLoading;
+
+  if (isLoading) {
+    return <LoadingSpinner message="Loading Command Center Dashboard..." minHeight="500px" />;
+  }
 
   return (
     <CommandCenterDashboard

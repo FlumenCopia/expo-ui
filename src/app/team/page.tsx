@@ -15,18 +15,20 @@ const TASK_TYPES = [
   { id: 'client', name: 'Client' },
 ];
 
+import { LoadingSpinner } from '@/components/common/LoadingSpinner';
+
 export default function TeamPage() {
-  const { data: members = [] } = useQuery({
+  const { data: members = [], isLoading: membersLoading } = useQuery({
     queryKey: ['members'],
     queryFn: () => api.get('/users').then((res) => res.data.data),
   });
 
-  const { data: roles = [] } = useQuery({
+  const { data: roles = [], isLoading: rolesLoading } = useQuery({
     queryKey: ['roles'],
     queryFn: () => api.get('/roles').then((res) => res.data.data),
   });
 
-  const { data: tasks = [] } = useQuery({
+  const { data: tasks = [], isLoading: tasksLoading } = useQuery({
     queryKey: ['tasks'],
     queryFn: () => api.get('/tasks').then((res) => res.data.data),
   });
@@ -42,6 +44,10 @@ export default function TeamPage() {
       .filter((t: TaskItem) => t.assignee === memberId && !['published', 'approved'].includes(t.status))
       .reduce((a: number, b: TaskItem) => a + (b.hours || 4), 0);
   };
+
+  if (membersLoading || rolesLoading || tasksLoading) {
+    return <LoadingSpinner message="Loading Team Roster & Capacity..." minHeight="450px" />;
+  }
 
   const daysLeft = (dueStr: string) => {
     const due = new Date(dueStr);

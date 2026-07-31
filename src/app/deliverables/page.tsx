@@ -16,13 +16,15 @@ const TASK_TYPES: Record<string, { name: string; cls: string }> = {
   client: { name: 'Client', cls: 'c-client' },
 };
 
+import { LoadingSpinner } from '@/components/common/LoadingSpinner';
+
 export default function DeliverablesPage() {
-  const { data: deliverables = [] } = useQuery({
+  const { data: deliverables = [], isLoading: deliverablesLoading } = useQuery({
     queryKey: ['deliverables'],
     queryFn: () => api.get('/deliverables').then((res) => res.data.data),
   });
 
-  const { data: tasks = [] } = useQuery({
+  const { data: tasks = [], isLoading: tasksLoading } = useQuery({
     queryKey: ['tasks'],
     queryFn: () => api.get('/tasks').then((res) => res.data.data),
   });
@@ -39,6 +41,10 @@ export default function DeliverablesPage() {
   const inProductionCount = tasks.filter(
     (t: TaskItem) => t.deliverable && ['progress', 'review'].includes(t.status)
   ).length;
+
+  if (deliverablesLoading || tasksLoading) {
+    return <LoadingSpinner message="Loading Contracted Scope & Deliverables..." minHeight="450px" />;
+  }
 
   return (
     <div>

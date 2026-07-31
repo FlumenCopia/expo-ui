@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useAuthStore } from '@/store/useAuthStore';
 import { AuthGuard } from '@/components/rbac/AuthGuard';
+import { DatabaseGuard } from '@/components/common/DatabaseGuard';
 
 export function Providers({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(
@@ -27,7 +28,9 @@ export function Providers({ children }: { children: React.ReactNode }) {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <AuthGuard>{children}</AuthGuard>
+      <DatabaseGuard>
+        <AuthGuard>{children}</AuthGuard>
+      </DatabaseGuard>
     </QueryClientProvider>
   );
 }

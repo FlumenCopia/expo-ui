@@ -5,15 +5,17 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/api';
 import { TimelineView } from '@/components/timeline/TimelineView';
 
+import { LoadingSpinner } from '@/components/common/LoadingSpinner';
+
 export default function TimelinePage() {
   const queryClient = useQueryClient();
 
-  const { data: tasks = [] } = useQuery({
+  const { data: tasks = [], isLoading: tasksLoading } = useQuery({
     queryKey: ['tasks'],
     queryFn: () => api.get('/tasks').then((res) => res.data.data),
   });
 
-  const { data: members = [] } = useQuery({
+  const { data: members = [], isLoading: membersLoading } = useQuery({
     queryKey: ['members'],
     queryFn: () => api.get('/users').then((res) => res.data.data),
   });
@@ -31,6 +33,10 @@ export default function TimelinePage() {
     const newStatus = isDone ? 'progress' : 'published';
     moveTaskMutation.mutate({ id: taskId, status: newStatus });
   };
+
+  if (tasksLoading || membersLoading) {
+    return <LoadingSpinner message="Loading Phase Timeline..." minHeight="450px" />;
+  }
 
   return (
     <TimelineView

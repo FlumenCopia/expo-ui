@@ -8,18 +8,20 @@ import { TaskDetailModal } from '@/components/tasks/TaskDetailModal';
 import { TaskFormModal } from '@/components/tasks/TaskFormModal';
 import { TaskItem } from '@/components/dashboard/CommandCenterDashboard';
 
+import { LoadingSpinner } from '@/components/common/LoadingSpinner';
+
 export default function TasksPage() {
   const queryClient = useQueryClient();
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<TaskItem | null>(null);
 
-  const { data: tasks = [] } = useQuery({
+  const { data: tasks = [], isLoading: tasksLoading } = useQuery({
     queryKey: ['tasks'],
     queryFn: () => api.get('/tasks').then((res) => res.data.data),
   });
 
-  const { data: members = [] } = useQuery({
+  const { data: members = [], isLoading: membersLoading } = useQuery({
     queryKey: ['members'],
     queryFn: () => api.get('/users').then((res) => res.data.data),
   });
@@ -77,6 +79,10 @@ export default function TasksPage() {
   });
 
   const activeTask = tasks.find((t: TaskItem) => t.id === selectedTaskId || (t as any)._id === selectedTaskId);
+
+  if (tasksLoading || membersLoading) {
+    return <LoadingSpinner message="Loading Task Board..." minHeight="450px" />;
+  }
 
   return (
     <div>

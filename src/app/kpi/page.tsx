@@ -6,12 +6,14 @@ import { api } from '@/lib/api';
 import { useAuthStore } from '@/store/useAuthStore';
 import { KPIItem } from '@/components/dashboard/CommandCenterDashboard';
 
+import { LoadingSpinner } from '@/components/common/LoadingSpinner';
+
 export default function KPIPage() {
   const queryClient = useQueryClient();
   const { hasPermission } = useAuthStore();
   const [inputs, setInputs] = useState<Record<string, number>>({});
 
-  const { data: kpis = [] } = useQuery({
+  const { data: kpis = [], isLoading: kpisLoading } = useQuery({
     queryKey: ['kpis'],
     queryFn: () => api.get('/kpis').then((res) => res.data.data),
   });
@@ -30,6 +32,10 @@ export default function KPIPage() {
       updateKpiMutation.mutate({ id, current: val });
     }
   };
+
+  if (kpisLoading) {
+    return <LoadingSpinner message="Loading KPI Metrics..." minHeight="450px" />;
+  }
 
   return (
     <div>
