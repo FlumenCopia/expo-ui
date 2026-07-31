@@ -87,10 +87,28 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
       }
       if (selectedPhase !== 'all' && t.phase !== selectedPhase) return false;
       if (selectedType !== 'all' && t.type !== selectedType) return false;
-      if (selectedAssignee !== 'all' && t.assignee !== selectedAssignee) return false;
+      if (selectedAssignee !== 'all') {
+        const targetMember = members.find(
+          (m) => getMemberId(m) === selectedAssignee || m.short === selectedAssignee || (m as any).email === selectedAssignee
+        );
+        if (targetMember) {
+          const mId = getMemberId(targetMember);
+          const taskAssignee = typeof t.assignee === 'object' ? (t.assignee as any)?._id || (t.assignee as any)?.id : t.assignee;
+          const taskAssigneeShort = typeof t.assignee === 'object' ? (t.assignee as any)?.short : t.assignee;
+          const isMatch =
+            taskAssignee === mId ||
+            taskAssigneeShort === targetMember.short ||
+            t.assignee === targetMember.short ||
+            t.assignee === targetMember.email ||
+            t.assignee === targetMember.name;
+          if (!isMatch) return false;
+        } else if (t.assignee !== selectedAssignee) {
+          return false;
+        }
+      }
       return true;
     });
-  }, [tasks, searchQuery, selectedPhase, selectedType, selectedAssignee]);
+  }, [tasks, members, searchQuery, selectedPhase, selectedType, selectedAssignee]);
 
   const daysLeft = (dueStr: string) => {
     if (!dueStr) return 0;
@@ -209,16 +227,18 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
 
         <select
           className="srch"
-          style={{ width: 'auto', minWidth: '130px' }}
+          style={{ width: 'auto', minWidth: '180px' }}
           value={selectedAssignee}
           onChange={(e) => setSelectedAssignee(e.target.value)}
         >
           <option value="all">All Members</option>
           {members.map((m) => {
             const mId = getMemberId(m);
+            const teamDesc = m.fn || m.team || m.role;
+            const label = teamDesc ? `${m.name} — ${teamDesc}` : m.name;
             return (
               <option key={mId} value={mId}>
-                {m.name}
+                {label}
               </option>
             );
           })}

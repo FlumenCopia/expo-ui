@@ -29,6 +29,8 @@ export interface MemberItem {
   fn: string;
   color: string;
   cap: number;
+  email?: string;
+  team?: string;
 }
 
 export interface DeliverableItem {
