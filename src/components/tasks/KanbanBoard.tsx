@@ -253,7 +253,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
                 <span className="kb-count">{colTasks.length}</span>
               </div>
 
-              <div className="kb-body" style={{ overflow: 'visible' }}>
+              <div className="kb-body">
                 {colTasks.length > 0 ? (
                   colTasks.map((t) => {
                     const taskId = getTaskId(t);

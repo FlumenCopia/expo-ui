@@ -102,13 +102,15 @@ input,select,textarea{font-family:inherit;font-size:13px}
 
 /* KANBAN BOARD WRAPPER */
 .kb-wrap{width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:12px}
-.kb{display:grid;grid-template-columns:repeat(6,minmax(250px,1fr));gap:12px;min-width:1560px;scroll-snap-type:x mandatory}
-.kb-col{background:var(--panel);border:1px solid var(--border);border-radius:var(--r);display:flex;flex-direction:column;min-height:450px;scroll-snap-align:start;transition:border-color .15s, background .15s}
-.kb-head{padding:11px 13px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.kb{display:grid;grid-template-columns:repeat(6,minmax(260px,1fr));gap:12px;min-width:1600px;scroll-snap-type:x mandatory}
+.kb-col{background:var(--panel);border:1px solid var(--border);border-radius:var(--r);display:flex;flex-direction:column;height:calc(100vh - 220px);min-height:480px;max-height:860px;scroll-snap-align:start;transition:border-color .15s, background .15s}
+.kb-head{padding:11px 13px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--panel);border-radius:var(--r) var(--r) 0 0;flex-shrink:0}
 .kb-name{font-size:11px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;display:flex;align-items:center;gap:6px}
 .kb-dot{width:7px;height:7px;border-radius:50%}
 .kb-count{background:var(--panel3);border-radius:99px;padding:1px 7px;font-size:10px;font-weight:700;color:var(--txt2)}
-.kb-body{padding:9px;flex:1;overflow-y:auto;max-height:70vh;display:flex;flex-direction:column;gap:8px}
+.kb-body{padding:9px;flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:8px;-webkit-overflow-scrolling:touch}
+.kb-body::-webkit-scrollbar{width:5px}
+.kb-body::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
 .tcard{background:var(--panel2);border:1px solid var(--border2);border-radius:var(--rs);padding:11px;cursor:pointer;transition:.15s;touch-action:none}
 .tcard:hover{border-color:var(--gold);transform:translateY(-1px)}
 .tcard.drag{opacity:.4;border:1px dashed var(--gold)}
