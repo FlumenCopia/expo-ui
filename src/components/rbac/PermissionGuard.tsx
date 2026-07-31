@@ -19,14 +19,9 @@ export const PermissionGuard: React.FC<PermissionGuardProps> = ({
   fallback = null,
   children,
 }) => {
-  const { user } = useAuthStore();
+  const { user, hasPermission } = useAuthStore();
 
   if (!user) return <>{fallback}</>;
-
-  // Super Admin bypass
-  if (user.permissions.includes('*')) {
-    return <>{children}</>;
-  }
 
   const checkList = permission ? [permission, ...permissions] : permissions;
 
@@ -35,8 +30,8 @@ export const PermissionGuard: React.FC<PermissionGuardProps> = ({
   }
 
   const hasAccess = requireAll
-    ? checkList.every((p) => user.permissions.includes(p))
-    : checkList.some((p) => user.permissions.includes(p));
+    ? checkList.every((p) => hasPermission(p))
+    : checkList.some((p) => hasPermission(p));
 
   if (!hasAccess) {
     return <>{fallback}</>;

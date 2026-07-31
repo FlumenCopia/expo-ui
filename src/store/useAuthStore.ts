@@ -272,7 +272,39 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   hasPermission: (permission: string) => {
     const user = get().user;
     if (!user) return false;
-    if (user.permissions && user.permissions.includes('*')) return true;
-    return user.permissions ? user.permissions.includes(permission) : false;
+    const perms = user.permissions || [];
+
+    // 1. Wildcard access for Super Admin
+    if (perms.includes('*')) return true;
+
+    // 2. Direct permission match
+    if (perms.includes(permission)) return true;
+
+    // 3. Fallback for view_all (grants view access across all main execution/management pages)
+    if (perms.includes('view_all')) {
+      if (
+        permission === 'page.dashboard.view' ||
+        permission === 'page.tasks.view' ||
+        permission === 'page.timeline.view' ||
+        permission === 'page.deliverables.view' ||
+        permission === 'page.approvals.view' ||
+        permission === 'page.team.view' ||
+        permission === 'page.kpi.view' ||
+        permission === 'page.budget.view' ||
+        permission === 'page.notifications.view' ||
+        permission === 'view_all'
+      ) {
+        return true;
+      }
+    }
+
+    // 4. Role action to page mapping fallbacks
+    if (permission === 'page.budget.view' && (perms.includes('view_budget') || perms.includes('budget.view'))) return true;
+    if (permission === 'page.kpi.view' && (perms.includes('view_kpi') || perms.includes('kpi.view'))) return true;
+    if (permission === 'page.team.view' && (perms.includes('manage_team') || perms.includes('team.view'))) return true;
+    if (permission === 'page.approvals.view' && (perms.includes('approve') || perms.includes('approvals.view'))) return true;
+    if (permission === 'page.tasks.view' && (perms.includes('create_task') || perms.includes('edit_task') || perms.includes('tasks.view'))) return true;
+
+    return false;
   },
 }));
