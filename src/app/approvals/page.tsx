@@ -19,6 +19,7 @@ const TASK_TYPES: Record<string, { name: string; cls: string }> = {
 export default function ApprovalsPage() {
   const queryClient = useQueryClient();
   const { user, hasPermission } = useAuthStore();
+  const [sortOrder, setSortOrder] = React.useState<'asc' | 'desc'>('asc');
 
   const { data: tasks = [] } = useQuery({
     queryKey: ['tasks'],
@@ -38,9 +39,15 @@ export default function ApprovalsPage() {
     },
   });
 
+  const sortFn = (a: TaskItem, b: TaskItem) => {
+    const da = new Date(a.due || '').getTime();
+    const db = new Date(b.due || '').getTime();
+    return sortOrder === 'asc' ? da - db : db - da;
+  };
+
   const pendingTasks = tasks.filter((t: TaskItem) => t.status === 'review');
-  const mine = pendingTasks.filter((t: TaskItem) => t.reviewer === user?.id);
-  const others = pendingTasks.filter((t: TaskItem) => t.reviewer !== user?.id);
+  const mine = pendingTasks.filter((t: TaskItem) => t.reviewer === user?.id).sort(sortFn);
+  const others = pendingTasks.filter((t: TaskItem) => t.reviewer !== user?.id).sort(sortFn);
 
   const daysLeft = (dueStr: string) => {
     const due = new Date(dueStr);
@@ -182,6 +189,26 @@ export default function ApprovalsPage() {
         <span>⏰</span>
         <div>
           <b>24-hour approval SLA.</b> Every hour a task sits here delays the publish schedule downstream. Approve, or send back with a clear revision note — but do not let it sit.
+        </div>
+      </div>
+
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', flexWrap: 'wrap', gap: '8px' }}>
+        <div style={{ fontSize: '12.5px', fontWeight: 600, color: 'var(--txt2)' }}>
+          Sort Pending Approvals by Due Date:
+        </div>
+        <div style={{ display: 'flex', gap: '6px' }}>
+          <button
+            className={`fbtn ${sortOrder === 'asc' ? 'on' : ''}`}
+            onClick={() => setSortOrder('asc')}
+          >
+            Due Date ↑ (Earliest First)
+          </button>
+          <button
+            className={`fbtn ${sortOrder === 'desc' ? 'on' : ''}`}
+            onClick={() => setSortOrder('desc')}
+          >
+            Due Date ↓ (Latest First)
+          </button>
         </div>
       </div>
 

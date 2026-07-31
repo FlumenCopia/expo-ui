@@ -39,6 +39,7 @@ export const TimelineView: React.FC<TimelineViewProps> = ({
     ph4: true,
     ph5: true,
   });
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc' | 'default'>('asc');
   const now = new Date();
 
   const getMemberId = (m: MemberItem) => m.id || (m as any)._id;
@@ -56,8 +57,40 @@ export const TimelineView: React.FC<TimelineViewProps> = ({
         </div>
       </div>
 
+      {/* SORT BY DATE CONTROL */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', flexWrap: 'wrap', gap: '8px' }}>
+        <div style={{ fontSize: '12.5px', fontWeight: 600, color: 'var(--txt2)' }}>
+          Sort Phase Tasks by Date:
+        </div>
+        <div style={{ display: 'flex', gap: '6px' }}>
+          <button
+            className={`fbtn ${sortOrder === 'asc' ? 'on' : ''}`}
+            onClick={() => setSortOrder('asc')}
+          >
+            Date ↑ (Earliest First)
+          </button>
+          <button
+            className={`fbtn ${sortOrder === 'desc' ? 'on' : ''}`}
+            onClick={() => setSortOrder('desc')}
+          >
+            Date ↓ (Latest First)
+          </button>
+          <button
+            className={`fbtn ${sortOrder === 'default' ? 'on' : ''}`}
+            onClick={() => setSortOrder('default')}
+          >
+            Default Order
+          </button>
+        </div>
+      </div>
+
       {PHASES.map((p) => {
-        const phaseTasks = tasks.filter((t) => t.phase === p.id);
+        let phaseTasks = tasks.filter((t) => t.phase === p.id);
+        if (sortOrder === 'asc') {
+          phaseTasks = [...phaseTasks].sort((a, b) => new Date(a.due).getTime() - new Date(b.due).getTime());
+        } else if (sortOrder === 'desc') {
+          phaseTasks = [...phaseTasks].sort((a, b) => new Date(b.due).getTime() - new Date(a.due).getTime());
+        }
         const done = phaseTasks.filter((t) => ['published', 'approved'].includes(t.status)).length;
         const pct = phaseTasks.length ? Math.round((done / phaseTasks.length) * 100) : 0;
 

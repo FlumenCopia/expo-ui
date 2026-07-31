@@ -53,6 +53,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
   const [selectedPhase, setSelectedPhase] = useState('all');
   const [selectedType, setSelectedType] = useState('all');
   const [selectedAssignee, setSelectedAssignee] = useState('all');
+  const [sortOrder, setSortOrder] = useState<'date-asc' | 'date-desc' | 'priority' | 'default'>('date-asc');
   const [draggedTaskId, setDraggedTaskId] = useState<string | null>(null);
   const [dragOverCol, setDragOverCol] = useState<string | null>(null);
   const [quickMoveTaskId, setQuickMoveTaskId] = useState<string | null>(null);
@@ -78,7 +79,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
   const getMemberId = (m: MemberItem) => m.id || (m as any)._id;
 
   const filteredTasks = useMemo(() => {
-    return tasks.filter((t) => {
+    const res = tasks.filter((t) => {
       if (searchQuery) {
         const q = searchQuery.toLowerCase();
         const matchTitle = (t.title || '').toLowerCase().includes(q);
@@ -108,7 +109,17 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
       }
       return true;
     });
-  }, [tasks, members, searchQuery, selectedPhase, selectedType, selectedAssignee]);
+
+    if (sortOrder === 'date-asc') {
+      return [...res].sort((a, b) => new Date(a.due || '').getTime() - new Date(b.due || '').getTime());
+    } else if (sortOrder === 'date-desc') {
+      return [...res].sort((a, b) => new Date(b.due || '').getTime() - new Date(a.due || '').getTime());
+    } else if (sortOrder === 'priority') {
+      const pMap: Record<string, number> = { p0: 0, p1: 1, p2: 2 };
+      return [...res].sort((a, b) => (pMap[a.priority] ?? 2) - (pMap[b.priority] ?? 2));
+    }
+    return res;
+  }, [tasks, members, searchQuery, selectedPhase, selectedType, selectedAssignee, sortOrder]);
 
   const daysLeft = (dueStr: string) => {
     if (!dueStr) return 0;
@@ -242,6 +253,18 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
               </option>
             );
           })}
+        </select>
+
+        <select
+          className="srch"
+          style={{ width: 'auto', minWidth: '160px' }}
+          value={sortOrder}
+          onChange={(e) => setSortOrder(e.target.value as any)}
+        >
+          <option value="date-asc">Sort: Date ↑ (Earliest)</option>
+          <option value="date-desc">Sort: Date ↓ (Latest)</option>
+          <option value="priority">Sort: Priority (P0-P2)</option>
+          <option value="default">Sort: Default Order</option>
         </select>
       </div>
 
