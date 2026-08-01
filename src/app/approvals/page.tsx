@@ -42,6 +42,10 @@ export default function ApprovalsPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['tasks'] });
     },
+    onError: (err: any) => {
+      alert(err.response?.data?.message || 'Access Restricted. Unable to update task status.');
+      queryClient.invalidateQueries({ queryKey: ['tasks'] });
+    },
   });
 
   const sortFn = (a: TaskItem, b: TaskItem) => {

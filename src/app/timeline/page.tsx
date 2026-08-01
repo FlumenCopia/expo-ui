@@ -26,6 +26,10 @@ export default function TimelinePage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['tasks'] });
     },
+    onError: (err: any) => {
+      alert(err.response?.data?.message || 'Access Restricted. Unable to update task status.');
+      queryClient.invalidateQueries({ queryKey: ['tasks'] });
+    },
   });
 
   const handleToggle = (taskId: string, currentStatus: string) => {
