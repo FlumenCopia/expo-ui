@@ -58,6 +58,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
   const [draggedTaskId, setDraggedTaskId] = useState<string | null>(null);
   const [dragOverCol, setDragOverCol] = useState<string | null>(null);
   const [quickMoveTaskId, setQuickMoveTaskId] = useState<string | null>(null);
+  const [activeColTab, setActiveColTab] = useState<string>('all');
 
   // Close Quick Move menu when clicking outside
   useEffect(() => {
@@ -307,18 +308,42 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
         )}
       </div>
 
-      {/* KANBAN BOARD WRAPPER */}
-      <div className="kb-wrap">
-        <div className="kb">
+      {/* COLUMN STATUS TABS SWITCHER FOR QUICK MOBILE / DESKTOP FOCUS */}
+      <div style={{ display: 'flex', gap: '6px', overflowX: 'auto', paddingBottom: '8px', marginBottom: '10px', width: '100%', WebkitOverflowScrolling: 'touch' }}>
+        <button
+          className={`fbtn ${activeColTab === 'all' ? 'on' : ''}`}
+          onClick={() => setActiveColTab('all')}
+        >
+          All Board ({filteredTasks.length})
+        </button>
         {STATUSES.map((s) => {
+          const count = filteredTasks.filter((t) => t.status === s.id).length;
+          return (
+            <button
+              key={s.id}
+              className={`fbtn ${activeColTab === s.id ? 'on' : ''}`}
+              onClick={() => setActiveColTab(s.id)}
+            >
+              <span style={{ display: 'inline-block', width: '6px', height: '6px', borderRadius: '50%', background: s.color, marginRight: '5px' }} />
+              {s.name} ({count})
+            </button>
+          );
+        })}
+      </div>
+
+      {/* KANBAN BOARD WRAPPER */}
+      <div className={`kb-wrap ${activeColTab !== 'all' ? 'kb-single-wrap' : ''}`}>
+        <div className="kb">
+        {STATUSES.filter((s) => activeColTab === 'all' || s.id === activeColTab).map((s) => {
           const colTasks = filteredTasks.filter((t) => t.status === s.id);
           const isOver = dragOverCol === s.id;
+          const isSingle = activeColTab !== 'all';
 
           return (
             <div
               key={s.id}
               data-col-id={s.id}
-              className={`kb-col ${isOver ? 'drag-over' : ''}`}
+              className={`kb-col ${isOver ? 'drag-over' : ''} ${isSingle ? 'single-view' : ''}`}
               style={{
                 border: isOver ? '2px dashed var(--gold)' : undefined,
                 background: isOver ? 'rgba(245,166,35,0.05)' : undefined,
@@ -365,9 +390,6 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
                           setDraggedTaskId(null);
                           setDragOverCol(null);
                         }}
-                        onTouchStart={(e) => handleTouchStart(e, taskId)}
-                        onTouchMove={handleTouchMove}
-                        onTouchEnd={handleTouchEnd}
                         onClick={(e) => {
                           if ((e.target as HTMLElement).closest('.qm-wrap')) return;
                           onTaskClick(taskId);
