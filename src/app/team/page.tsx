@@ -176,56 +176,58 @@ export default function TeamPage() {
           </div>
         </div>
 
-        <table className="tbl">
-          <thead>
-            <tr>
-              <th>Member</th>
-              {TASK_TYPES.map((t) => (
-                <th key={t.id} style={{ textAlign: 'center', width: '62px' }}>
-                  {t.name}
-                </th>
-              ))}
-              <th style={{ textAlign: 'center', width: '60px' }}>Total</th>
-            </tr>
-          </thead>
-          <tbody>
-            {members.map((m: MemberItem) => {
-              const mId = m.id || (m as any)._id;
-              const own = tasks.filter((t: TaskItem) => t.assignee === mId || t.assignee === m.short || t.assignee === m.name);
-              if (!own.length) return null;
-              return (
-                <tr key={mId}>
-                  <td className="strong">
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <div className="tc-av" style={{ background: m.color || '#3B82F6' }}>
-                        {m.short}
+        <div className="tbl-wrap">
+          <table className="tbl">
+            <thead>
+              <tr>
+                <th>Member</th>
+                {TASK_TYPES.map((t) => (
+                  <th key={t.id} style={{ textAlign: 'center', width: '62px' }}>
+                    {t.name}
+                  </th>
+                ))}
+                <th style={{ textAlign: 'center', width: '60px' }}>Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              {members.map((m: MemberItem) => {
+                const mId = m.id || (m as any)._id;
+                const own = tasks.filter((t: TaskItem) => t.assignee === mId || t.assignee === m.short || t.assignee === m.name);
+                if (!own.length) return null;
+                return (
+                  <tr key={mId}>
+                    <td className="strong">
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <div className="tc-av" style={{ background: m.color || '#3B82F6' }}>
+                          {m.short}
+                        </div>
+                        {m.name}
                       </div>
-                      {m.name}
-                    </div>
-                  </td>
-                  {TASK_TYPES.map((tt) => {
-                    const c = own.filter((t: TaskItem) => t.type === tt.id).length;
-                    return (
-                      <td
-                        key={tt.id}
-                        style={{
-                          textAlign: 'center',
-                          color: c ? 'var(--txt)' : 'var(--txt3)',
-                          fontWeight: c ? 600 : 400,
-                        }}
-                      >
-                        {c || '·'}
-                      </td>
-                    );
-                  })}
-                  <td style={{ textAlign: 'center' }} className="strong mono">
-                    {own.length}
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
+                    </td>
+                    {TASK_TYPES.map((tt) => {
+                      const c = own.filter((t: TaskItem) => t.type === tt.id).length;
+                      return (
+                        <td
+                          key={tt.id}
+                          style={{
+                            textAlign: 'center',
+                            color: c ? 'var(--txt)' : 'var(--txt3)',
+                            fontWeight: c ? 600 : 400,
+                          }}
+                        >
+                          {c || '·'}
+                        </td>
+                      );
+                    })}
+                    <td style={{ textAlign: 'center' }} className="strong mono">
+                      {own.length}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );

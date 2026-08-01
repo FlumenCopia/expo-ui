@@ -133,70 +133,72 @@ export default function SettingsPage() {
               </button>
             )}
           </div>
-          <table className="tbl">
-            <thead>
-              <tr>
-                <th>Role</th>
-                <th>Assigned Members</th>
-                <th>Permissions</th>
-                <th style={{ width: '60px' }} />
-              </tr>
-            </thead>
-            <tbody>
-              {roles.map((r: RoleData & { _id: string }) => {
-                const who = members.filter((m: MemberItem) => m.role === r.code);
-                const isSuper = r.code === 'super_admin' || r.permissions.includes('*');
+          <div className="tbl-wrap">
+            <table className="tbl">
+              <thead>
+                <tr>
+                  <th>Role</th>
+                  <th>Assigned Members</th>
+                  <th>Permissions</th>
+                  <th style={{ width: '60px' }} />
+                </tr>
+              </thead>
+              <tbody>
+                {roles.map((r: RoleData & { _id: string }) => {
+                  const who = members.filter((m: MemberItem) => m.role === r.code);
+                  const isSuper = r.code === 'super_admin' || r.permissions.includes('*');
 
-                return (
-                  <tr key={r._id}>
-                    <td className="strong">
-                      {r.name}
-                      <div style={{ fontSize: '9.5px', color: 'var(--txt3)', marginTop: '2px' }} className="mono">
-                        {r.code}
-                      </div>
-                    </td>
-                    <td>
-                      {who.length > 0 ? (
-                        who.map((m: MemberItem) => (
-                          <span
-                            key={m.id}
-                            className="chip"
-                            style={{ background: `${m.color}22`, color: m.color, marginRight: '4px', marginBottom: '2px' }}
-                          >
-                            {m.name}
+                  return (
+                    <tr key={r._id}>
+                      <td className="strong">
+                        {r.name}
+                        <div style={{ fontSize: '9.5px', color: 'var(--txt3)', marginTop: '2px' }} className="mono">
+                          {r.code}
+                        </div>
+                      </td>
+                      <td>
+                        {who.length > 0 ? (
+                          who.map((m: MemberItem) => (
+                            <span
+                              key={m.id}
+                              className="chip"
+                              style={{ background: `${m.color}22`, color: m.color, marginRight: '4px', marginBottom: '2px' }}
+                            >
+                              {m.name}
+                            </span>
+                          ))
+                        ) : (
+                          <span style={{ color: 'var(--txt3)' }}>—</span>
+                        )}
+                      </td>
+                      <td style={{ fontSize: '11px' }}>
+                        {isSuper ? (
+                          <b style={{ color: 'var(--gold)' }}>★ Full access (* wildcards)</b>
+                        ) : (
+                          <span className="mono" style={{ color: 'var(--txt2)' }}>
+                            {r.permissions.length} permissions granted
                           </span>
-                        ))
-                      ) : (
-                        <span style={{ color: 'var(--txt3)' }}>—</span>
-                      )}
-                    </td>
-                    <td style={{ fontSize: '11px' }}>
-                      {isSuper ? (
-                        <b style={{ color: 'var(--gold)' }}>★ Full access (* wildcards)</b>
-                      ) : (
-                        <span className="mono" style={{ color: 'var(--txt2)' }}>
-                          {r.permissions.length} permissions granted
-                        </span>
-                      )}
-                    </td>
-                    <td>
-                      {hasPermission('manage_team') && (
-                        <button
-                          className="btn btn-s btn-sm"
-                          onClick={() => {
-                            setEditingRole(r);
-                            setIsRoleModalOpen(true);
-                          }}
-                        >
-                          Edit
-                        </button>
-                      )}
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+                        )}
+                      </td>
+                      <td>
+                        {hasPermission('manage_team') && (
+                          <button
+                            className="btn btn-s btn-sm"
+                            onClick={() => {
+                              setEditingRole(r);
+                              setIsRoleModalOpen(true);
+                            }}
+                          >
+                            Edit
+                          </button>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
         </div>
 
         {/* TEAM MANAGEMENT TABLE */}
@@ -218,71 +220,73 @@ export default function SettingsPage() {
               </button>
             )}
           </div>
-          <table className="tbl">
-            <thead>
-              <tr>
-                <th>Member</th>
-                <th>Role</th>
-                <th style={{ width: '60px' }}>Cap</th>
-                <th style={{ width: '110px' }}>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {members.map((m: MemberItem) => {
-                const rDoc = roles.find((r: RoleData) => r.code === m.role);
-                return (
-                  <tr key={m.id}>
-                    <td>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <div className="tc-av" style={{ background: m.color }}>
-                          {m.short}
-                        </div>
-                        <div>
-                          <div className="strong" style={{ color: 'var(--txt)' }}>
-                            {m.name}
+          <div className="tbl-wrap">
+            <table className="tbl">
+              <thead>
+                <tr>
+                  <th>Member</th>
+                  <th>Role</th>
+                  <th style={{ width: '60px' }}>Cap</th>
+                  <th style={{ width: '110px' }}>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {members.map((m: MemberItem) => {
+                  const rDoc = roles.find((r: RoleData) => r.code === m.role);
+                  return (
+                    <tr key={m.id}>
+                      <td>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <div className="tc-av" style={{ background: m.color }}>
+                            {m.short}
                           </div>
-                          <div style={{ fontSize: '10px', color: 'var(--txt3)' }}>
-                            {(m as any).email}
+                          <div>
+                            <div className="strong" style={{ color: 'var(--txt)' }}>
+                              {m.name}
+                            </div>
+                            <div style={{ fontSize: '10px', color: 'var(--txt3)' }}>
+                              {(m as any).email}
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    </td>
-                    <td>
-                      <span className="chip c-it">
-                        {rDoc ? rDoc.name : m.role}
-                      </span>
-                    </td>
-                    <td className="mono">{m.cap}h</td>
-                    <td>
-                      {hasPermission('manage_team') && (
-                        <div style={{ display: 'flex', gap: '4px' }}>
-                          <button
-                            className="btn btn-s btn-sm"
-                            onClick={() => {
-                              setEditingMember(m);
-                              setIsMemberModalOpen(true);
-                            }}
-                          >
-                            Edit
-                          </button>
-                          <button
-                            className="btn btn-s btn-sm"
-                            title="Change Password"
-                            onClick={() => {
-                              setPasswordTargetUser(m);
-                              setIsPasswordModalOpen(true);
-                            }}
-                          >
-                            🔑
-                          </button>
-                        </div>
-                      )}
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+                      </td>
+                      <td>
+                        <span className="chip c-it">
+                          {rDoc ? rDoc.name : m.role}
+                        </span>
+                      </td>
+                      <td className="mono">{m.cap}h</td>
+                      <td>
+                        {hasPermission('manage_team') && (
+                          <div style={{ display: 'flex', gap: '4px' }}>
+                            <button
+                              className="btn btn-s btn-sm"
+                              onClick={() => {
+                                setEditingMember(m);
+                                setIsMemberModalOpen(true);
+                              }}
+                            >
+                              Edit
+                            </button>
+                            <button
+                              className="btn btn-s btn-sm"
+                              title="Change Password"
+                              onClick={() => {
+                                setPasswordTargetUser(m);
+                                setIsPasswordModalOpen(true);
+                              }}
+                            >
+                              🔑
+                            </button>
+                          </div>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
 
@@ -313,26 +317,28 @@ export default function SettingsPage() {
             <div className="card-s">What triggers an alert, and who receives it</div>
           </div>
         </div>
-        <table className="tbl">
-          <thead>
-            <tr>
-              <th>Trigger</th>
-              <th>Notifies</th>
-              <th>Priority</th>
-            </tr>
-          </thead>
-          <tbody>
-            {NOTIF_RULES.map((rule, idx) => (
-              <tr key={idx}>
-                <td className="strong">{rule.trigger}</td>
-                <td>{rule.notifies}</td>
-                <td>
-                  <span className={`chip ${rule.chipCls}`}>{rule.priority}</span>
-                </td>
+        <div className="tbl-wrap">
+          <table className="tbl">
+            <thead>
+              <tr>
+                <th>Trigger</th>
+                <th>Notifies</th>
+                <th>Priority</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {NOTIF_RULES.map((rule, idx) => (
+                <tr key={idx}>
+                  <td className="strong">{rule.trigger}</td>
+                  <td>{rule.notifies}</td>
+                  <td>
+                    <span className={`chip ${rule.chipCls}`}>{rule.priority}</span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
 
       {/* MEMBER MODAL */}
