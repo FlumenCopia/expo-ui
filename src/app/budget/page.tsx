@@ -48,14 +48,6 @@ export default function BudgetPage() {
   const idealSpend = Math.round(tot * (elapsed / totalDays));
   const pace = spent - idealSpend;
 
-  if (budgetLoading) {
-    return <LoadingSpinner message="Loading Budget & Spend Allocations..." minHeight="450px" />;
-  }
-
-  const fmtINR = (val: number) => {
-    return '₹' + val.toLocaleString('en-IN');
-  };
-
   const chartData = useMemo(() => {
     return {
       labels: PHASES.map((p) => p.name),
@@ -68,12 +60,20 @@ export default function BudgetPage() {
     };
   }, [budgetList]);
 
+  const fmtINR = (val: number) => {
+    return '₹' + val.toLocaleString('en-IN');
+  };
+
   const handleUpdate = (id: string) => {
     const val = inputs[id];
     if (val !== undefined) {
       updateBudgetMutation.mutate({ id, spent: val });
     }
   };
+
+  if (budgetLoading) {
+    return <LoadingSpinner message="Loading Budget & Spend Allocations..." minHeight="450px" />;
+  }
 
   return (
     <PageGuard requiredPermission="view_budget">
