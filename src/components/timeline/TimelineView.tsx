@@ -39,6 +39,11 @@ export const TimelineView: React.FC<TimelineViewProps> = ({
     ph4: true,
     ph5: true,
   });
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedDept, setSelectedDept] = useState('all');
+  const [selectedAssignee, setSelectedAssignee] = useState('all');
+  const [selectedPriority, setSelectedPriority] = useState('all');
+  const [selectedStatus, setSelectedStatus] = useState('all');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc' | 'default'>('asc');
   const now = new Date();
 
@@ -47,6 +52,53 @@ export const TimelineView: React.FC<TimelineViewProps> = ({
   const togglePhase = (id: string) => {
     setOpenPhases((prev) => ({ ...prev, [id]: !prev[id] }));
   };
+
+  const isFilterActive =
+    searchQuery !== '' ||
+    selectedDept !== 'all' ||
+    selectedAssignee !== 'all' ||
+    selectedPriority !== 'all' ||
+    selectedStatus !== 'all';
+
+  const clearFilters = () => {
+    setSearchQuery('');
+    setSelectedDept('all');
+    setSelectedAssignee('all');
+    setSelectedPriority('all');
+    setSelectedStatus('all');
+  };
+
+  const filteredTasks = tasks.filter((t) => {
+    if (searchQuery) {
+      const q = searchQuery.toLowerCase();
+      const matchTitle = (t.title || '').toLowerCase().includes(q);
+      const matchCode = (t.code || '').toLowerCase().includes(q);
+      if (!matchTitle && !matchCode) return false;
+    }
+    if (selectedDept !== 'all' && t.type !== selectedDept) return false;
+    if (selectedAssignee !== 'all') {
+      const targetMember = members.find(
+        (m) => getMemberId(m) === selectedAssignee || m.short === selectedAssignee || (m as any).email === selectedAssignee
+      );
+      if (targetMember) {
+        const mId = getMemberId(targetMember);
+        const taskAssignee = typeof t.assignee === 'object' ? (t.assignee as any)?._id || (t.assignee as any)?.id : t.assignee;
+        const taskAssigneeShort = typeof t.assignee === 'object' ? (t.assignee as any)?.short : t.assignee;
+        const isMatch =
+          taskAssignee === mId ||
+          taskAssigneeShort === targetMember.short ||
+          t.assignee === targetMember.short ||
+          t.assignee === targetMember.email ||
+          t.assignee === targetMember.name;
+        if (!isMatch) return false;
+      } else if (t.assignee !== selectedAssignee) {
+        return false;
+      }
+    }
+    if (selectedPriority !== 'all' && t.priority !== selectedPriority) return false;
+    if (selectedStatus !== 'all' && t.status !== selectedStatus) return false;
+    return true;
+  });
 
   return (
     <div>
@@ -57,35 +109,129 @@ export const TimelineView: React.FC<TimelineViewProps> = ({
         </div>
       </div>
 
-      {/* SORT BY DATE CONTROL */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', flexWrap: 'wrap', gap: '8px' }}>
-        <div style={{ fontSize: '12.5px', fontWeight: 600, color: 'var(--txt2)' }}>
-          Sort Phase Tasks by Date:
+      {/* FILTER & SORT BAR */}
+      <div className="card mb" style={{ padding: '14px' }}>
+        <div style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '.5px', textTransform: 'uppercase', color: 'var(--txt3)', marginBottom: '10px' }}>
+          Filter Timeline Tasks:
         </div>
-        <div style={{ display: 'flex', gap: '6px' }}>
-          <button
-            className={`fbtn ${sortOrder === 'asc' ? 'on' : ''}`}
-            onClick={() => setSortOrder('asc')}
+        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
+          {/* Search Input */}
+          <input
+            className="srch"
+            style={{ width: '180px' }}
+            placeholder="Search code or title…"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+
+          {/* Department Select */}
+          <select
+            className="srch"
+            style={{ width: 'auto', minWidth: '150px' }}
+            value={selectedDept}
+            onChange={(e) => setSelectedDept(e.target.value)}
           >
-            Date ↑ (Earliest First)
-          </button>
-          <button
-            className={`fbtn ${sortOrder === 'desc' ? 'on' : ''}`}
-            onClick={() => setSortOrder('desc')}
+            <option value="all">All Departments</option>
+            <option value="design">🎨 Design</option>
+            <option value="video">🎬 Video</option>
+            <option value="ads">📢 Ads / Performance</option>
+            <option value="it">💻 IT / Web</option>
+            <option value="content">📝 Content</option>
+            <option value="ops">⚙️ Ops</option>
+            <option value="client">👥 Client</option>
+          </select>
+
+          {/* Assignee Select */}
+          <select
+            className="srch"
+            style={{ width: 'auto', minWidth: '160px' }}
+            value={selectedAssignee}
+            onChange={(e) => setSelectedAssignee(e.target.value)}
           >
-            Date ↓ (Latest First)
-          </button>
-          <button
-            className={`fbtn ${sortOrder === 'default' ? 'on' : ''}`}
-            onClick={() => setSortOrder('default')}
+            <option value="all">All Assignees</option>
+            {members.map((m) => {
+              const mId = getMemberId(m);
+              const desc = m.fn || m.team || m.role;
+              return (
+                <option key={mId} value={mId}>
+                  {m.name} {desc ? `— ${desc}` : ''}
+                </option>
+              );
+            })}
+          </select>
+
+          {/* Priority Select */}
+          <select
+            className="srch"
+            style={{ width: 'auto', minWidth: '130px' }}
+            value={selectedPriority}
+            onChange={(e) => setSelectedPriority(e.target.value)}
           >
-            Default Order
-          </button>
+            <option value="all">All Priorities</option>
+            <option value="p0">🔴 P0 Critical</option>
+            <option value="p1">🟡 P1 High</option>
+            <option value="p2">🔵 P2 Normal</option>
+          </select>
+
+          {/* Status Select */}
+          <select
+            className="srch"
+            style={{ width: 'auto', minWidth: '130px' }}
+            value={selectedStatus}
+            onChange={(e) => setSelectedStatus(e.target.value)}
+          >
+            <option value="all">All Statuses</option>
+            <option value="progress">⚡ In Progress</option>
+            <option value="review">👀 In Review</option>
+            <option value="approved">✅ Approved</option>
+            <option value="published">🚀 Published</option>
+            <option value="assigned">📌 Assigned</option>
+            <option value="backlog">📥 Backlog</option>
+          </select>
+
+          {/* Clear Filters */}
+          {isFilterActive && (
+            <button
+              className="btn btn-s btn-sm"
+              onClick={clearFilters}
+              style={{ borderRadius: 'var(--rs)', padding: '7px 12px' }}
+            >
+              🧹 Clear Filters
+            </button>
+          )}
+        </div>
+
+        {/* SORT BY DATE CONTROL */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '12px', paddingTop: '10px', borderTop: '1px solid var(--border2)', flexWrap: 'wrap', gap: '8px' }}>
+          <div style={{ fontSize: '12px', fontWeight: 600, color: 'var(--txt2)' }}>
+            Sort Tasks by Date:
+          </div>
+          <div style={{ display: 'flex', gap: '6px' }}>
+            <button
+              className={`fbtn ${sortOrder === 'asc' ? 'on' : ''}`}
+              onClick={() => setSortOrder('asc')}
+            >
+              Date ↑ (Earliest First)
+            </button>
+            <button
+              className={`fbtn ${sortOrder === 'desc' ? 'on' : ''}`}
+              onClick={() => setSortOrder('desc')}
+            >
+              Date ↓ (Latest First)
+            </button>
+            <button
+              className={`fbtn ${sortOrder === 'default' ? 'on' : ''}`}
+              onClick={() => setSortOrder('default')}
+            >
+              Default Order
+            </button>
+          </div>
         </div>
       </div>
 
       {PHASES.map((p) => {
-        let phaseTasks = tasks.filter((t) => t.phase === p.id);
+        let phaseTasks = filteredTasks.filter((t) => t.phase === p.id);
+        const totalPhaseTasks = tasks.filter((t) => t.phase === p.id);
         if (sortOrder === 'asc') {
           phaseTasks = [...phaseTasks].sort((a, b) => new Date(a.due).getTime() - new Date(b.due).getTime());
         } else if (sortOrder === 'desc') {

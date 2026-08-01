@@ -53,6 +53,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
   const [selectedPhase, setSelectedPhase] = useState('all');
   const [selectedType, setSelectedType] = useState('all');
   const [selectedAssignee, setSelectedAssignee] = useState('all');
+  const [selectedPriority, setSelectedPriority] = useState('all');
   const [sortOrder, setSortOrder] = useState<'date-asc' | 'date-desc' | 'priority' | 'default'>('date-asc');
   const [draggedTaskId, setDraggedTaskId] = useState<string | null>(null);
   const [dragOverCol, setDragOverCol] = useState<string | null>(null);
@@ -78,6 +79,21 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
   const getTaskId = (t: any) => t.id || t._id;
   const getMemberId = (m: MemberItem) => m.id || (m as any)._id;
 
+  const isFilterActive =
+    searchQuery !== '' ||
+    selectedPhase !== 'all' ||
+    selectedType !== 'all' ||
+    selectedAssignee !== 'all' ||
+    selectedPriority !== 'all';
+
+  const clearFilters = () => {
+    setSearchQuery('');
+    setSelectedPhase('all');
+    setSelectedType('all');
+    setSelectedAssignee('all');
+    setSelectedPriority('all');
+  };
+
   const filteredTasks = useMemo(() => {
     const res = tasks.filter((t) => {
       if (searchQuery) {
@@ -88,6 +104,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
       }
       if (selectedPhase !== 'all' && t.phase !== selectedPhase) return false;
       if (selectedType !== 'all' && t.type !== selectedType) return false;
+      if (selectedPriority !== 'all' && t.priority !== selectedPriority) return false;
       if (selectedAssignee !== 'all') {
         const targetMember = members.find(
           (m) => getMemberId(m) === selectedAssignee || m.short === selectedAssignee || (m as any).email === selectedAssignee
@@ -119,7 +136,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
       return [...res].sort((a, b) => (pMap[a.priority] ?? 2) - (pMap[b.priority] ?? 2));
     }
     return res;
-  }, [tasks, members, searchQuery, selectedPhase, selectedType, selectedAssignee, sortOrder]);
+  }, [tasks, members, searchQuery, selectedPhase, selectedType, selectedAssignee, selectedPriority, sortOrder]);
 
   const daysLeft = (dueStr: string) => {
     if (!dueStr) return 0;
@@ -193,7 +210,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
   return (
     <div style={{ width: '100%' }}>
       {/* FILTERS BAR */}
-      <div className="filters">
+      <div className="filters" style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
         <input
           className="srch"
           placeholder="Search tasks…"
@@ -223,7 +240,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
             className={`fbtn ${selectedType === 'all' ? 'on' : ''}`}
             onClick={() => setSelectedType('all')}
           >
-            All Types
+            All Depts / Types
           </button>
           {TASK_TYPES.map((t) => (
             <button
@@ -238,7 +255,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
 
         <select
           className="srch"
-          style={{ width: 'auto', minWidth: '180px' }}
+          style={{ width: 'auto', minWidth: '160px' }}
           value={selectedAssignee}
           onChange={(e) => setSelectedAssignee(e.target.value)}
         >
@@ -257,6 +274,18 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
 
         <select
           className="srch"
+          style={{ width: 'auto', minWidth: '130px' }}
+          value={selectedPriority}
+          onChange={(e) => setSelectedPriority(e.target.value)}
+        >
+          <option value="all">All Priorities</option>
+          <option value="p0">🔴 P0 Critical</option>
+          <option value="p1">🟡 P1 High</option>
+          <option value="p2">🔵 P2 Normal</option>
+        </select>
+
+        <select
+          className="srch"
           style={{ width: 'auto', minWidth: '160px' }}
           value={sortOrder}
           onChange={(e) => setSortOrder(e.target.value as any)}
@@ -266,6 +295,16 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
           <option value="priority">Sort: Priority (P0-P2)</option>
           <option value="default">Sort: Default Order</option>
         </select>
+
+        {isFilterActive && (
+          <button
+            className="btn btn-s btn-sm"
+            onClick={clearFilters}
+            style={{ borderRadius: 'var(--rs)', padding: '7px 12px' }}
+          >
+            🧹 Clear
+          </button>
+        )}
       </div>
 
       {/* KANBAN BOARD WRAPPER */}

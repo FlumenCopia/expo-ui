@@ -21,6 +21,9 @@ import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 export default function ApprovalsPage() {
   const queryClient = useQueryClient();
   const { user, hasPermission } = useAuthStore();
+  const [searchQuery, setSearchQuery] = React.useState('');
+  const [selectedDept, setSelectedDept] = React.useState('all');
+  const [selectedPriority, setSelectedPriority] = React.useState('all');
   const [sortOrder, setSortOrder] = React.useState<'asc' | 'desc'>('asc');
 
   const { data: tasks = [], isLoading: tasksLoading } = useQuery({
@@ -47,7 +50,27 @@ export default function ApprovalsPage() {
     return sortOrder === 'asc' ? da - db : db - da;
   };
 
-  const pendingTasks = tasks.filter((t: TaskItem) => t.status === 'review');
+  const isFilterActive = searchQuery !== '' || selectedDept !== 'all' || selectedPriority !== 'all';
+
+  const clearFilters = () => {
+    setSearchQuery('');
+    setSelectedDept('all');
+    setSelectedPriority('all');
+  };
+
+  const pendingTasks = tasks.filter((t: TaskItem) => {
+    if (t.status !== 'review') return false;
+    if (searchQuery) {
+      const q = searchQuery.toLowerCase();
+      const matchTitle = (t.title || '').toLowerCase().includes(q);
+      const matchCode = (t.code || '').toLowerCase().includes(q);
+      if (!matchTitle && !matchCode) return false;
+    }
+    if (selectedDept !== 'all' && t.type !== selectedDept) return false;
+    if (selectedPriority !== 'all' && t.priority !== selectedPriority) return false;
+    return true;
+  });
+
   const mine = pendingTasks.filter((t: TaskItem) => t.reviewer === user?.id).sort(sortFn);
   const others = pendingTasks.filter((t: TaskItem) => t.reviewer !== user?.id).sort(sortFn);
 
@@ -198,23 +221,76 @@ export default function ApprovalsPage() {
         </div>
       </div>
 
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', flexWrap: 'wrap', gap: '8px' }}>
-        <div style={{ fontSize: '12.5px', fontWeight: 600, color: 'var(--txt2)' }}>
-          Sort Pending Approvals by Due Date:
+      <div className="card mb" style={{ padding: '14px' }}>
+        <div style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '.5px', textTransform: 'uppercase', color: 'var(--txt3)', marginBottom: '10px' }}>
+          Filter Pending Approvals:
         </div>
-        <div style={{ display: 'flex', gap: '6px' }}>
-          <button
-            className={`fbtn ${sortOrder === 'asc' ? 'on' : ''}`}
-            onClick={() => setSortOrder('asc')}
+        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
+          <input
+            className="srch"
+            style={{ width: '180px' }}
+            placeholder="Search code or title…"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+
+          <select
+            className="srch"
+            style={{ width: 'auto', minWidth: '150px' }}
+            value={selectedDept}
+            onChange={(e) => setSelectedDept(e.target.value)}
           >
-            Due Date ↑ (Earliest First)
-          </button>
-          <button
-            className={`fbtn ${sortOrder === 'desc' ? 'on' : ''}`}
-            onClick={() => setSortOrder('desc')}
+            <option value="all">All Departments</option>
+            <option value="design">🎨 Design</option>
+            <option value="video">🎬 Video</option>
+            <option value="ads">📢 Ads / Performance</option>
+            <option value="it">💻 IT / Web</option>
+            <option value="content">📝 Content</option>
+            <option value="ops">⚙️ Ops</option>
+            <option value="client">👥 Client</option>
+          </select>
+
+          <select
+            className="srch"
+            style={{ width: 'auto', minWidth: '130px' }}
+            value={selectedPriority}
+            onChange={(e) => setSelectedPriority(e.target.value)}
           >
-            Due Date ↓ (Latest First)
-          </button>
+            <option value="all">All Priorities</option>
+            <option value="p0">🔴 P0 Critical</option>
+            <option value="p1">🟡 P1 High</option>
+            <option value="p2">🔵 P2 Normal</option>
+          </select>
+
+          {isFilterActive && (
+            <button
+              className="btn btn-s btn-sm"
+              onClick={clearFilters}
+              style={{ borderRadius: 'var(--rs)', padding: '7px 12px' }}
+            >
+              🧹 Clear Filters
+            </button>
+          )}
+        </div>
+
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '12px', paddingTop: '10px', borderTop: '1px solid var(--border2)', flexWrap: 'wrap', gap: '8px' }}>
+          <div style={{ fontSize: '12px', fontWeight: 600, color: 'var(--txt2)' }}>
+            Sort Pending Approvals by Due Date:
+          </div>
+          <div style={{ display: 'flex', gap: '6px' }}>
+            <button
+              className={`fbtn ${sortOrder === 'asc' ? 'on' : ''}`}
+              onClick={() => setSortOrder('asc')}
+            >
+              Due Date ↑ (Earliest First)
+            </button>
+            <button
+              className={`fbtn ${sortOrder === 'desc' ? 'on' : ''}`}
+              onClick={() => setSortOrder('desc')}
+            >
+              Due Date ↓ (Latest First)
+            </button>
+          </div>
         </div>
       </div>
 
