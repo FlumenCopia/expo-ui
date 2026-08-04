@@ -38,7 +38,7 @@ export const ChartWidget: React.FC<ChartWidgetProps> = ({ data, height = 90, sta
         display: stacked,
         position: 'bottom',
         labels: {
-          color: '#A1A1AA',
+          color: '#475569',
           boxWidth: 11,
           font: { size: 11 },
         },
@@ -48,12 +48,12 @@ export const ChartWidget: React.FC<ChartWidgetProps> = ({ data, height = 90, sta
       x: {
         stacked,
         grid: { display: false },
-        ticks: { color: '#71717A', font: { size: 11 } },
+        ticks: { color: '#64748B', font: { size: 11 } },
       },
       y: {
         stacked,
-        grid: { color: '#27272A' },
-        ticks: { color: '#71717A', font: { size: 11 } },
+        grid: { color: '#E2E8F0' },
+        ticks: { color: '#64748B', font: { size: 11 } },
       },
     },
   };
