@@ -84,9 +84,9 @@ export const exportToPDF = async () => {
           body { font-family: 'Inter', sans-serif; color: #1E293B; background: #fff; margin: 0; padding: 20px; font-size: 11px; }
           .header { display: flex; justify-content: space-between; align-items: flex-start; padding-bottom: 16px; border-bottom: 2px solid #0F172A; margin-bottom: 20px; }
           .brand { display: flex; align-items: center; gap: 12px; }
-          .logo { width: 36px; height: 36px; background: #F5A623; border-radius: 8px; color: #000; display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: 800; }
+          .logo { width: 36px; height: 36px; background: #10E784; border-radius: 8px; color: #060D0A; display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: 800; }
           .title { font-size: 18px; font-weight: 800; color: #0F172A; margin: 0; }
-          .sub { font-size: 10px; color: #F5A623; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; margin-top: 2px; }
+          .sub { font-size: 10px; color: #10E784; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; margin-top: 2px; }
           .meta { text-align: right; font-size: 10px; color: #64748B; }
           .tag { display: inline-block; background: #FEF3C7; color: #92400E; font-size: 9px; font-weight: 700; padding: 2px 8px; border-radius: 4px; text-transform: uppercase; margin-top: 4px; }
           

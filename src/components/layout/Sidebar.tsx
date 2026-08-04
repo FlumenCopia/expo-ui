@@ -137,7 +137,7 @@ export const Sidebar: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ is
             }}
             onClick={() => setShowAccountsMenu(!showAccountsMenu)}
           >
-            <div className="tc-av" style={{ background: user.color || '#F5A623' }}>
+            <div className="tc-av" style={{ background: user.color || '#10E784' }}>
               {user.short}
             </div>
             <div style={{ flex: 1, overflow: 'hidden' }}>
