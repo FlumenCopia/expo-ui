@@ -6,7 +6,7 @@ import { api } from '@/lib/api';
 import { CommandCenterDashboard } from '@/components/dashboard/CommandCenterDashboard';
 
 const DEFAULT_MEMBERS = [
-  { id: 'u_anoop', name: 'Anoop Krishna', short: 'AK', role: 'super_admin', fn: 'Founder / Strategy', color: '#10E784', cap: 12 },
+  { id: 'u_anoop', name: 'Anoop Krishna', short: 'AK', role: 'super_admin', fn: 'Founder / Strategy', color: '#FFFFFF', cap: 12 },
   { id: 'u_anurag', name: 'Anurag', short: 'AN', role: 'ops_head', fn: 'Operations Head · PCP', color: '#3B82F6', cap: 30 },
   { id: 'u_dishun', name: 'Dishun', short: 'DH', role: 'team_lead', fn: 'Team Lead · Ads & Planning', color: '#22D3EE', cap: 26 },
   { id: 'u_shibin', name: 'Shibin', short: 'SH', role: 'team_lead', fn: 'Team Lead · Digital Marketing', color: '#A78BFA', cap: 24 },

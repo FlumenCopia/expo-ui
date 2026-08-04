@@ -84,7 +84,7 @@ export const Topbar: React.FC<TopbarProps> = ({ onToggleSidebar }) => {
 
         {user && (
           <div className="tb-user-badge">
-            <div className="tc-av" style={{ background: user.color || '#10E784' }} title={user.name}>
+            <div className="tc-av" style={{ background: user.color || '#FFFFFF' }} title={user.name}>
               {user.short}
             </div>
             <div className="tb-user-name" style={{ lineHeight: 1.1 }}>

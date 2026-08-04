@@ -62,8 +62,8 @@ export const DatabaseGuard: React.FC<DatabaseGuardProps> = ({ children }) => {
           flexDirection: 'column',
           alignItems: 'center',
           justifyContent: 'center',
-          background: '#060D0A',
-          color: '#E2F1E8',
+          background: '#09090B',
+          color: '#FAFAFA',
           fontFamily: 'Inter, sans-serif',
           padding: '20px',
         }}
@@ -73,14 +73,14 @@ export const DatabaseGuard: React.FC<DatabaseGuardProps> = ({ children }) => {
             width: '64px',
             height: '64px',
             borderRadius: '16px',
-            background: 'linear-gradient(135deg, #10E784, #059669)',
-            color: '#060D0A',
+            background: 'linear-gradient(135deg, #FFFFFF, #A1A1AA)',
+            color: '#09090B',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             fontSize: '32px',
             marginBottom: '20px',
-            boxShadow: '0 0 30px rgba(16, 231, 132, 0.4)',
+            boxShadow: '0 0 30px rgba(255, 255, 255, 0.25)',
             animation: 'pulse 2s infinite',
           }}
         >
@@ -89,7 +89,7 @@ export const DatabaseGuard: React.FC<DatabaseGuardProps> = ({ children }) => {
         <div style={{ fontSize: '20px', fontWeight: 800, marginBottom: '6px', textAlign: 'center' }}>
           Masters Expo 2026 Command Center
         </div>
-        <div style={{ fontSize: '13px', color: '#8AA998', marginBottom: '24px', textAlign: 'center' }}>
+        <div style={{ fontSize: '13px', color: '#A1A1AA', marginBottom: '24px', textAlign: 'center' }}>
           Verifying Database Connection & Backend Health…
         </div>
         <div
@@ -97,12 +97,12 @@ export const DatabaseGuard: React.FC<DatabaseGuardProps> = ({ children }) => {
             display: 'inline-flex',
             alignItems: 'center',
             gap: '8px',
-            background: '#0C1812',
-            border: '1px solid #193325',
+            background: '#121215',
+            border: '1px solid #27272A',
             borderRadius: '20px',
             padding: '8px 18px',
             fontSize: '12px',
-            color: '#10E784',
+            color: '#FAFAFA',
           }}
         >
           <span className="rt" style={{ width: '10px', height: '10px' }} />
@@ -121,8 +121,8 @@ export const DatabaseGuard: React.FC<DatabaseGuardProps> = ({ children }) => {
           flexDirection: 'column',
           alignItems: 'center',
           justifyContent: 'center',
-          background: '#060D0A',
-          color: '#E2F1E8',
+          background: '#09090B',
+          color: '#FAFAFA',
           fontFamily: 'Inter, sans-serif',
           padding: '24px',
         }}
@@ -131,7 +131,7 @@ export const DatabaseGuard: React.FC<DatabaseGuardProps> = ({ children }) => {
           style={{
             maxWidth: '520px',
             width: '100%',
-            background: '#0C1812',
+            background: '#121215',
             border: '1px solid #EF4444',
             borderRadius: '14px',
             padding: '28px',
@@ -143,7 +143,7 @@ export const DatabaseGuard: React.FC<DatabaseGuardProps> = ({ children }) => {
           <div style={{ fontSize: '18px', fontWeight: 800, color: '#EF4444', marginBottom: '10px' }}>
             Database Connection Error
           </div>
-          <p style={{ fontSize: '13.5px', color: '#8AA998', lineHeight: 1.6, marginBottom: '20px' }}>
+          <p style={{ fontSize: '13.5px', color: '#A1A1AA', lineHeight: 1.6, marginBottom: '20px' }}>
             The application cannot load because a verified database connection could not be established.
           </p>
 
@@ -171,8 +171,8 @@ export const DatabaseGuard: React.FC<DatabaseGuardProps> = ({ children }) => {
                 padding: '12px 20px',
                 fontSize: '13px',
                 fontWeight: 700,
-                background: '#10E784',
-                color: '#060D0A',
+                background: '#FFFFFF',
+                color: '#09090B',
                 borderRadius: '8px',
                 cursor: 'pointer',
               }}
@@ -180,8 +180,8 @@ export const DatabaseGuard: React.FC<DatabaseGuardProps> = ({ children }) => {
             >
               🔄 Retry Connection Now
             </button>
-            <div style={{ fontSize: '11px', color: '#587867' }}>
-              Auto-retrying in <b style={{ color: '#10E784' }}>{countdown}s</b>…
+            <div style={{ fontSize: '11px', color: '#71717A' }}>
+              Auto-retrying in <b style={{ color: '#FFFFFF' }}>{countdown}s</b>…
             </div>
           </div>
         </div>

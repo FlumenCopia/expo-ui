@@ -76,12 +76,12 @@ const PHASES = [
 ];
 
 const STATUSES = [
-  { id: 'backlog', name: 'Backlog', color: '#587867' },
+  { id: 'backlog', name: 'Backlog', color: '#71717A' },
   { id: 'assigned', name: 'Assigned', color: '#3B82F6' },
   { id: 'progress', name: 'In Progress', color: '#F59E0B' },
-  { id: 'review', name: 'In Review', color: '#A78BFA' },
-  { id: 'approved', name: 'Approved', color: '#14B8A6' },
-  { id: 'published', name: 'Published', color: '#10E784' },
+  { id: 'review', name: 'In Review', color: '#A855F7' },
+  { id: 'approved', name: 'Approved', color: '#0EA5E9' },
+  { id: 'published', name: 'Published', color: '#22C55E' },
 ];
 
 const TASK_TYPES: Record<string, { name: string; cls: string }> = {
